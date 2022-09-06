@@ -1,6 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-
+const app = '''
 abstract class BeatxApp {
   static CupertinoApp cupertino({
     Key? key,
@@ -138,3 +136,5 @@ abstract class BeatxApp {
         useInheritedMediaQuery: useInheritedMediaQuery ?? false,
       );
 }
+
+''';

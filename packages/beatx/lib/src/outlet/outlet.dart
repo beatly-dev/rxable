@@ -27,8 +27,7 @@ class Outlet extends StatelessWidget {
     final child = paths.length > level ? paths[level] : 'index';
     final childPath = p.join(currentPath, child);
 
-    final childWidget =
-        subroute!.subroutes[childPath]?.call(context, subroute.state);
+    final childWidget = subroute!.subroutes[childPath]?.call(context);
 
     return LevelProvider(
       level: level + 1,

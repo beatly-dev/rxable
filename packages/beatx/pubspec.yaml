@@ -1,4 +1,4 @@
-name: beatx_annotation
+name: beatx
 description: A new Flutter package project.
 version: 0.1.0
 
@@ -9,6 +9,7 @@ dependencies:
   flutter:
     sdk: flutter
   go_router: ^4.3.0
+  path: ^1.8.2
 
 dev_dependencies:
   flutter_test:

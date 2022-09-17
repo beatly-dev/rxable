@@ -1,0 +1,9 @@
+include: package:lints/recommended.yaml
+
+# Uncomment the following section to specify additional rules.
+
+linter:
+  rules:
+    - require_trailing_commas
+    - prefer_relative_imports
+    - prefer_single_quotes

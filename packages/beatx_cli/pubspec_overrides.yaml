@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: beatx
+dependency_overrides:
+  beatx:
+    path: ../beatx

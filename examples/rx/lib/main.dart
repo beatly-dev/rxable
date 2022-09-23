@@ -100,11 +100,11 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             (() => Text(
-                  'counter1 ${_counter.value}',
+                  'counter1 $_counter',
                   style: Theme.of(context).textTheme.headline4,
                 )).observe,
             (() => Text(
-                  'counter2 ${_counter2.value}',
+                  'counter2 $_counter2',
                   style: Theme.of(context).textTheme.headline4,
                 )).observe,
             (() => Text(
@@ -119,6 +119,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   'my data is ${_myData.value.name.value}: ${_myData.value.value.value}',
                   style: Theme.of(context).textTheme.headline4,
                 )).observe,
+            CustomObserver(counter: _counter),
             RxObserver(builder: (_) {
               return Text(
                 'counter1 ${_counter.value}',
@@ -149,5 +150,17 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
+  }
+}
+
+class CustomObserver extends StatelessRxObserver {
+  const CustomObserver({
+    required this.counter,
+    super.key,
+  });
+  final Rx<int> counter;
+  @override
+  Widget build(BuildContext context) {
+    return Text("You clicked the button $counter times");
   }
 }

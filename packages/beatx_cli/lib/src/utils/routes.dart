@@ -10,12 +10,12 @@ bool routesDirExists() {
 }
 
 bool routeAppFileExists() {
-  final path = p.absolute(routeAppFile);
+  final path = p.absolute(routeOutputPath);
   return File(path).existsSync();
 }
 
 void initRouteAppFile([bool addIndexPage = false]) {
-  final appPath = p.absolute(routeAppFile);
+  final appPath = p.absolute(routeOutputPath);
   final appFile = File(appPath);
   appFile.createSync(recursive: true);
   appFile.writeAsStringSync('''

@@ -16,6 +16,6 @@ class CleanRunner extends Command {
   @override
   run() async {
     Directory(metadataOutputDir).deleteSync(recursive: true);
-    File(routeAppFile).deleteSync();
+    File(routeOutputPath).deleteSync();
   }
 }

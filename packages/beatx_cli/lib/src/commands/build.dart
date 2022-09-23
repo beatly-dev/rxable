@@ -29,7 +29,7 @@ class BuildRunner extends Command {
       initRouteAppFile();
     }
 
-    final routes = <RouteElement>[];
+    final routeElements = <RouteElement>[];
 
     for (final context in libraryCollection.contexts) {
       /// Get all the routes from the library
@@ -37,23 +37,23 @@ class BuildRunner extends Command {
             (file) => file.isRouteFile,
           );
 
-      /// Get all the route elements from the library
-      final routeElements = await Future.wait(
-        routeFiles.map(
-          (file) => getSingleRouteElement(context, file),
-        ),
-      );
-
       // Add the route elements to the routes list
-      routes.addAll(
-        routeElements.where((element) => element != null).cast<RouteElement>(),
+      routeElements.addAll(
+        /// Get all the route elements from the library
+        (await Future.wait(
+          routeFiles.map(
+            (file) => getSingleRouteElement(context, file),
+          ),
+        ))
+            .where((element) => element != null)
+            .cast<RouteElement>(),
       );
     }
 
     final tree = BeatxRouteTree();
 
     /// Generate the route files
-    for (final route in routes) {
+    for (final route in routeElements) {
       final element = route.element.element;
       if (element is! ClassElement) {
         throw Exception('''
@@ -70,10 +70,12 @@ XRoute annotation can only be used on classes.
 
       await file.writeAsString(routeData.toString(), flush: true);
     }
-    tree.constructTree();
 
-    final root = tree.root;
+    final routes = tree.toGoRoute();
 
-    final routesArray = root.toGoRoute();
+    print(routes);
+    final routeOutputFile = File(routeOutputPath);
+
+    await routeOutputFile.writeAsString(routes);
   }
 }

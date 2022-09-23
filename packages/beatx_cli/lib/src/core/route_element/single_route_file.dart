@@ -24,8 +24,16 @@ Future<RouteElement?> getSingleRouteElement(
   if (annotated.isEmpty) {
     return null;
   }
+
+  final isRoot = annotated.first.annotation.peek('isRoot')?.boolValue ?? false;
+  final isLayout =
+      annotated.first.annotation.peek('isLayout')?.boolValue ?? false;
   return RouteElement(
     element: annotated.first,
-    route: RouteNode.fromLibraryPath(path),
+    route: RouteNode.fromLibraryPath(
+      path,
+      isRoot: isRoot,
+      isLayout: isLayout,
+    ),
   );
 }

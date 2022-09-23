@@ -15,11 +15,13 @@ class RouteNode {
     required this.libPath,
     this.parent = '',
     this.isRoot = false,
+    this.isLayout = false,
   });
   final String libPath;
   final String path;
   final String parent;
   final bool isRoot;
+  final bool isLayout;
 
   Map<String, dynamic> toJson() => _$RouteNodeToJson(this);
   factory RouteNode.fromJson(Map<String, dynamic> json) =>
@@ -32,7 +34,11 @@ class RouteNode {
   ///   3-1. Do not nesting if the path is wrapped with '[]'.
   ///       (e.g. /home[.room.desk] => /home.room.desk, /home[.]room.desk => /home.room/desk)
   /// 4. convert path params to go_router params. (e.g. /home/$room/desk => /home/:room/desk)
-  factory RouteNode.fromLibraryPath(String path, [bool isRoot = false]) {
+  factory RouteNode.fromLibraryPath(
+    String path, {
+    bool isRoot = false,
+    bool isLayout = false,
+  }) {
     final routePath = convertPathToRoute(path);
     final parent = isRoot ? '' : parentPath(routePath);
     final nestedPath = convertFlatPathToNestedPath(routePath);

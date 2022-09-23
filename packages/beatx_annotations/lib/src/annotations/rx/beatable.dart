@@ -1,0 +1,3 @@
+class Beatable {
+  const Beatable();
+}

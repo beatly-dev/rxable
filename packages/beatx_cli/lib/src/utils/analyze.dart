@@ -22,10 +22,5 @@ analyzeAllFiles(AnalysisContextCollection collection) async {
 
 analyzeSingleFile(AnalysisContext context, String path) async {
   final session = context.currentSession;
-  print('=== $path ===');
   final resolved = await session.getUnitElement(path) as UnitElementResult;
-  print('class ${resolved.element.classes}');
-  print('accessors: ${resolved.element.accessors}');
-  print('metadata: ${resolved.element.metadata}');
-  print('functions: ${resolved.element.functions}');
 }

@@ -1,0 +1,17 @@
+include: package:flutter_lints/flutter.yaml
+
+# Additional information about this file can be found at
+# https://dart.dev/guides/language/analysis-options
+
+linter:
+  rules:
+    - always_declare_return_types
+    - always_put_required_named_parameters_first
+    - prefer_relative_imports
+    - annotate_overrides
+    - prefer_single_quotes
+    - prefer_const_constructors
+    - unnecessary_await_in_return
+    - unnecessary_new
+    - close_sinks
+    - require_trailing_commas

@@ -21,7 +21,7 @@ dev_dependencies:
   json_serializable: ^6.3.1
   lints: ^2.0.0
   test: ^1.16.0
-  beatx: ">=0.0.0 <1.0.0"
+  beatx_annotations: ">=0.0.0 <1.0.0"
 
 executables:
   beatx:

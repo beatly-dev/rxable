@@ -7,7 +7,7 @@ const metadataOutputDir = '.dart_tool/beatx';
 const routesDir = 'lib/routes';
 
 /// Auto-generated GoRouter file
-const routeAppFile = '$routesDir/_app_.dart';
+const routeOutputPath = '$routesDir/_app_.dart';
 
 /// Index page
 const indexPageFile = '$routesDir/index.dart';

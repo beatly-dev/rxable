@@ -3,8 +3,8 @@ part of 'rx.dart';
 /// A Helper widget to automatically rebuild the widget
 /// when the [BeatxRx] changes.
 /// You don't need to explicitly provide your [BeatxRx] to this widget.
-class RxObserver extends StatelessRxObserver {
-  const RxObserver({
+class ReactiveBuilder extends StatelessWidget with StatelessReactiveMixin {
+  const ReactiveBuilder({
     required this.builder,
     super.key,
   });
@@ -15,81 +15,54 @@ class RxObserver extends StatelessRxObserver {
   @override
   Widget build(BuildContext context) => builder(context);
 }
-/*
-  Statless widget
-*/
 
-/// You can extend this class to create your custom statless widget
-/// which reacts to the change of the [BeatxRx].
-abstract class StatelessRxObserver extends StatefulRxObserver {
-  const StatelessRxObserver({super.key}) : super();
-
-  /// A widget constructor
-  Widget build(BuildContext context);
-
+// A mixin to automatically rebuild the StatelessWidget
+mixin StatelessReactiveMixin on StatelessWidget {
   @override
-  StatefulRxObserverState createState() => _StatelessRxObserverState();
+  StatelessElement createElement() => _ReactableStatelessElement(this);
 }
 
-class _StatelessRxObserverState
-    extends StatefulRxObserverState<StatelessRxObserver> {
-  @override
-  Widget build(BuildContext context) => widget.build(context);
+class _ReactableStatelessElement extends StatelessElement
+    with ObserverStateMixin {
+  _ReactableStatelessElement(StatelessWidget widget) : super(widget);
 }
 
-/* 
-  Base class 
-*/
-/// You can extend this class and [StatefulRxObserverState]
-/// to create your custom stateful widget
-/// which reacts to the change of the [BeatxRx].
-abstract class StatefulRxObserver extends StatefulWidget {
-  const StatefulRxObserver({super.key});
-
+// A mixin to automatically rebuild the StatelessWidget
+mixin StatefulReactiveMixin on StatefulWidget {
   @override
-  StatefulElement createElement() => _RxObserverElement(this);
-
-  @override
-  StatefulRxObserverState createState();
+  StatefulElement createElement() => _ReactableStatefulElement(this);
 }
 
-/// A state class for [StatefulRxObserver]
-abstract class StatefulRxObserverState<T extends StatefulRxObserver>
-    extends State<T> {
+class _ReactableStatefulElement extends StatefulElement
+    with ObserverStateMixin {
+  _ReactableStatefulElement(StatefulWidget widget) : super(widget);
+}
+
+/// A mixin to automatically rebuild the StatefulWidget's State
+mixin ObserverStateMixin on Element {
   final _BeatxSubscription _subscription = _BeatxSubscription();
-  @mustCallSuper
+
   @override
-  void dispose() {
-    _subscription.unsubscribeAll();
-    super.dispose();
+  void mount(Element? parent, Object? newSlot) {
+    _subscription.addListener(markNeedsBuild);
+    super.mount(parent, newSlot);
   }
 
-  Widget _build(BuildContext context) => build(context);
-}
+  @override
+  void rebuild() {
+    final previousObserver = BeatxRx._observer;
 
-class _RxObserverElement extends StatefulElement {
-  _RxObserverElement(super.widget);
+    _subscription.unsubscribeAll();
+    BeatxRx._observer = _subscription;
+    super.rebuild();
+    BeatxRx._observer = previousObserver;
+  }
 
   @override
-  late final StatefulRxObserverState state =
-      (widget as StatefulRxObserver).createState();
-
-  @override
-  Widget build() {
-    return AnimatedBuilder(
-      animation: state._subscription,
-      builder: (context, __) {
-        final previousObserver = BeatxRx._observer;
-
-        /// Opt-out from the previous subscription if any
-        /// to prevent duplicated subscription
-        state._subscription.unsubscribeAll();
-        BeatxRx._observer = state._subscription;
-        final child = state._build(context);
-        BeatxRx._observer = previousObserver;
-        return child;
-      },
-    );
+  void unmount() {
+    _subscription.unsubscribeAll();
+    _subscription.removeListener(markNeedsBuild);
+    super.unmount();
   }
 }
 
@@ -100,15 +73,15 @@ class _RxObserverElement extends StatefulElement {
 extension WrapWithBeatxObserverBuilder on Widget Function(
   BuildContext context,
 ) {
-  /// Wrap the widget with [RxObserver] to automatically rebuild
-  Widget get observe => RxObserver(
+  /// Wrap the widget with [ReactiveBuilder] to automatically rebuild
+  Widget get observe => ReactiveBuilder(
         builder: this,
       );
 }
 
 extension WrapWithBeatxObserver on Widget Function() {
-  /// Wrap the widget with [RxObserver] to automatically rebuild
-  Widget get observe => RxObserver(
+  /// Wrap the widget with [ReactiveBuilder] to automatically rebuild
+  Widget get observe => ReactiveBuilder(
         builder: (_) => this(),
       );
 }

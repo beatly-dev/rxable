@@ -120,7 +120,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   style: Theme.of(context).textTheme.headline4,
                 )).observe,
             CustomObserver(counter: _counter),
-            RxObserver(builder: (_) {
+            ReactiveBuilder(builder: (_) {
               return Text(
                 'counter1 ${_counter.value}',
                 style: Theme.of(context).textTheme.headline4,
@@ -153,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-class CustomObserver extends StatelessRxObserver {
+class CustomObserver extends StatelessWidget with StatelessReactiveMixin {
   const CustomObserver({
     required this.counter,
     super.key,

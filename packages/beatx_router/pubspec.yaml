@@ -1,6 +1,6 @@
 name: beatx_router
 description: A new Flutter package project.
-version: 0.1.0
+version: 0.1.1
 
 environment:
   sdk: ">=2.18.0 <3.0.0"

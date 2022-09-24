@@ -1,6 +1,6 @@
 name: beatx_annotations
 description: A set of annotations to be used with 'beatx_cli'.
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/beatly-dev/beatx
 issue_tracker: https://github.com/beatly-dev/beatx/issues
 

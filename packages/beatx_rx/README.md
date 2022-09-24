@@ -69,17 +69,17 @@ final currentTime = ComputedRx(() => '${currentHour}:${currentMinute}:${currentS
 
 The other method and usage of `ComputedRx` are same as `Rx`.
 
-## RxObserver
+## ReactiveBuilder
 
-`RxObserver` observes the observables and rebuilds the widget when the observables are changed.
-You don't need to explicitly define what you are depending on. Just wrap your widget with `RxObserver`.
+`ReactiveBuilder` observes the observables and rebuilds the widget when the observables are changed.
+You don't need to explicitly define what you are depending on. Just wrap your widget with `ReactiveBuilder`.
 
 ```dart
 class MyWidget extends StatelessWidget {
 	final counter = 0.rx;
 	@override
 	Widget build(BuildContext context) {
-		return RxObserver(
+		return ReactiveBuilder(
 			builder: (BuildContext context) {
 				return Text(counter.value.toString());
 			},
@@ -139,25 +139,25 @@ user.name = 'Gihwan Oh';
 user.rebuild();
 ```
 
-## Custom RxObserver
+## Custom ReactiveBuilder
 
-Wrapping your widget with `RxObserver` is not the only way to observe the observables.
+Wrapping your widget with `ReactiveBuilder` is not the only way to observe the observables.
 Sometimes you want to observe the observables in a specific widget,
 just like `StatelessWidget` and `StatefulWidget`.
 
-`beatx_rx` provides `StatelessRxObserver` and `StatefulRxObserver` for this purpose.
-For example, `RxObserver` just is a wrapper of `StatelessRxObserver`.
+`beatx_rx` provides `StatelessReactiveMixin`, `StatefulReactiveMixin`, and `ReactiveStateMixin` for this purpose.
+For example, `ReactiveBuilder` is just a wrapper of `StatelessReactiveMixin`.
 
-### StatelessRxObserver
+### StatelessReactiveMixin
 
-If you don't need to use lifecycle methods, you can extend `StatelessRxObserver`.
+If you don't need to use lifecycle methods, you can mixin `StatelessReactiveMixin`.
 
 ```dart
 /// Somewhere in your code
 final counter = 0.rx;
 
 /// ...
-class MyObserverWidget extends StatelessRxObserver {
+class MyObserverWidget extends StatelessWidget with StatelessReactiveMixin {
 	@override
 	Widget build(BuildContext context) {
 		return Text('You clicked the button ${counter} times!');
@@ -165,23 +165,37 @@ class MyObserverWidget extends StatelessRxObserver {
 }
 ```
 
-### StatefulRxObserver
+### ReactiveStateMixin
 
-If you need to use lifecycle methods, you can extend `StatefulRxObserver`.
+If you need to use lifecycle methods, you can mixin `ReactiveStateMixin`.
 
 ```dart
 /// Somewhere in your code
 final counter = 0.rx;
 
 /// ...
-class MyObserverWidget extends StatefulRxObserver<MyObserverWidgetState> {
+class MyObserverWidget extends StatefulWidget {
 	@override
 	MyObserverWidgetState createState() => MyObserverWidgetState();
 }
 
-class MyObserverWidgetState extends StatefulRxObserverState<MyObserverWidget> {
+class MyObserverWidgetState extends State<MyObserverWidget> with ReactiveStateMixin {
 	/// You can use initState, dispose, didUpdateWidget, didChangeDependencies
 
+	@override
+	Widget build(BuildContext context) {
+		return Text('You clicked the button ${counter} times!');
+	}
+}
+```
+
+### StatefulReactiveMixin
+
+Sometimes, some `StatefulWidget` have a main `build` method.
+In this case, you can mixin `StatefulReactiveMixin`.
+
+```dart
+class MyStatefulSomeWidget extends StatefulWidget with StatefulReactiveMixin {
 	@override
 	Widget build(BuildContext context) {
 		return Text('You clicked the button ${counter} times!');

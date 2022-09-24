@@ -3,22 +3,23 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:source_gen/source_gen.dart';
 
-import '../../constants/type_checker.dart';
-import '../../models/route_element.dart';
-import '../../utils/types.dart';
+import '../constants/type_checker.dart';
+import '../models/route_element.dart';
+import '../utils/types.dart';
 
-class BeatxRotueData {
-  BeatxRotueData(this.routeElement);
+class BeatxRouteGenerator {
+  BeatxRouteGenerator(this.routeElement);
   final RouteElement routeElement;
 
   /// Refined path
-  String get path => routeElement.route.path;
+  String get path => routeElement.info.routePath;
 
   /// Annotation element
-  AnnotatedElement get annotatedElement => routeElement.element;
+  AnnotatedElement get annotatedElement => routeElement.element!;
 
   /// Widget class
-  ClassElement get classElement => routeElement.element.element as ClassElement;
+  ClassElement get classElement =>
+      routeElement.element!.element as ClassElement;
 
   /// Default constructor
   ConstructorElement get constructor =>

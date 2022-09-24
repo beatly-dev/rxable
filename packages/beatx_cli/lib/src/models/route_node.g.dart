@@ -6,16 +6,20 @@ part of 'route_node.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-RouteNode _$RouteNodeFromJson(Map<String, dynamic> json) => RouteNode(
-      path: json['path'] as String,
+RouteInfo _$RouteInfoFromJson(Map<String, dynamic> json) => RouteInfo(
       libPath: json['libPath'] as String,
-      parent: json['parent'] as String? ?? '',
+      routePath: json['routePath'] as String,
+      widgetName: json['widgetName'] as String,
+      parentRoutePath: json['parentRoutePath'] as String? ?? '',
       isRoot: json['isRoot'] as bool? ?? false,
+      isLayout: json['isLayout'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$RouteNodeToJson(RouteNode instance) => <String, dynamic>{
+Map<String, dynamic> _$RouteInfoToJson(RouteInfo instance) => <String, dynamic>{
       'libPath': instance.libPath,
-      'path': instance.path,
-      'parent': instance.parent,
+      'routePath': instance.routePath,
+      'parentRoutePath': instance.parentRoutePath,
+      'widgetName': instance.widgetName,
       'isRoot': instance.isRoot,
+      'isLayout': instance.isLayout,
     };

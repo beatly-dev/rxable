@@ -28,10 +28,12 @@ Future<RouteElement?> getSingleRouteElement(
   final isRoot = annotated.first.annotation.peek('isRoot')?.boolValue ?? false;
   final isLayout =
       annotated.first.annotation.peek('isLayout')?.boolValue ?? false;
+  final widgetName = annotated.first.element.displayName;
   return RouteElement(
     element: annotated.first,
-    route: RouteNode.fromLibraryPath(
+    info: RouteInfo.fromLibraryPath(
       path,
+      widgetName: widgetName,
       isRoot: isRoot,
       isLayout: isLayout,
     ),

@@ -2,13 +2,14 @@ import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:args/command_runner.dart';
+import 'package:dart_style/dart_style.dart';
 
 import '../constants/files.dart';
-import '../core/route_element/beatx_route_data.dart';
-import '../core/route_element/route_tree.dart';
 import '../core/route_element/single_route_file.dart';
+import '../generators/route_generator.dart';
 import '../models/route_element.dart';
-import '../resources/collection.dart';
+import '../models/route_tree.dart';
+import '../resources/library_collection.dart';
 import '../utils/path.dart';
 import '../utils/routes.dart';
 
@@ -50,11 +51,12 @@ class BuildRunner extends Command {
       );
     }
 
-    final tree = BeatxRouteTree();
+    final tree = RouteTree();
+    final formatter = DartFormatter();
 
     /// Generate the route files
     for (final route in routeElements) {
-      final element = route.element.element;
+      final element = route.element!.element;
       if (element is! ClassElement) {
         throw Exception('''
 XRoute annotation can only be used on classes.
@@ -62,20 +64,22 @@ XRoute annotation can only be used on classes.
       }
       tree.addNewRoute(route);
 
-      final path = createRouteFilePath(route.route.libPath);
+      final path = createRouteFilePath(route.info.libPath);
 
       final file = File(path);
 
-      final routeData = BeatxRotueData(route);
+      final routeData = BeatxRouteGenerator(route);
 
-      await file.writeAsString(routeData.toString(), flush: true);
+      await file.writeAsString(
+        formatter.format(routeData.toString()),
+        flush: true,
+      );
     }
 
-    final routes = tree.toGoRoute();
+    final routes = tree.toString();
 
-    print(routes);
     final routeOutputFile = File(routeOutputPath);
 
-    await routeOutputFile.writeAsString(routes);
+    await routeOutputFile.writeAsString(formatter.format(routes));
   }
 }

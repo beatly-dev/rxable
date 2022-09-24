@@ -31,7 +31,7 @@ void initRoutesDir() {
   final indexPageFile = File(indexPagePath)..createSync(recursive: true);
   indexPageFile.writeAsStringSync('''
 import 'package:flutter/material.dart';
-import 'package:beatx/beatx.dart';
+import 'package:beatx_annotations/beatx_annotations.dart';
 
 @XRoute()
 class MainScreen extends StatelessWidget {

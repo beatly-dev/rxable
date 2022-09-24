@@ -1,6 +1,8 @@
 name: beatx_annotations
-description: A new Flutter package project.
+description: A set of annotations to be used with 'beatx_cli'.
 version: 0.1.0
+homepage: https://github.com/beatly-dev/beatx
+issue_tracker: https://github.com/beatly-dev/beatx/issues
 
 environment:
   sdk: ">=2.18.0 <3.0.0"

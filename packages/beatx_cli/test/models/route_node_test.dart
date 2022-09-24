@@ -5,41 +5,45 @@ main() {
   group('Create RouteNode', () {
     test('/index.dart => root, /, empty parent', () async {
       final path = r'/my/dir/from/the/root/lib/routes/index.dart';
-      final route = RouteNode.fromLibraryPath(path);
+      final route = RouteInfo.fromLibraryPath(path, widgetName: 'HomeScreen');
       expect(route.isRoot, isTrue);
-      expect(route.parent.isEmpty, isTrue);
-      expect(route.path, '/');
+      expect(route.parentRoutePath.isEmpty, isTrue);
+      expect(route.routePath, '/');
     });
     test('/home.dart => not root, /home, parent / ', () async {
       final path = r'/my/dir/from/the/root/lib/routes/home.dart';
-      final route = RouteNode.fromLibraryPath(path);
-      expect(route.parent, '/');
-      expect(route.path, '/home');
+      final route = RouteInfo.fromLibraryPath(path, widgetName: 'HomeScreen');
+      expect(route.parentRoutePath, '/');
+      expect(route.routePath, '/home');
       expect(route.isRoot, isFalse);
     });
 
     test('/home/room.dart => not root, /home/room, parent /home', () async {
       final path = r'/my/dir/from/the/root/lib/routes/home/room.dart';
-      final route = RouteNode.fromLibraryPath(path);
-      expect(route.parent, '/home');
-      expect(route.path, '/home/room');
+      final route = RouteInfo.fromLibraryPath(path, widgetName: 'HomeScreen');
+      expect(route.parentRoutePath, '/home');
+      expect(route.routePath, '/home/room');
       expect(route.isRoot, isFalse);
     });
 
     test('/home.room.dart => not root, /home/room, parent /', () async {
       final path = r'/my/dir/from/the/root/lib/routes/home.room.dart';
-      final route = RouteNode.fromLibraryPath(path);
-      expect(route.parent, '/');
-      expect(route.path, '/home/room');
+      final route = RouteInfo.fromLibraryPath(path, widgetName: 'HomeScreen');
+      expect(route.parentRoutePath, '/');
+      expect(route.routePath, '/home/room');
       expect(route.isRoot, isFalse);
     });
     test(
         '/home/room/desk.dart with root flag => root, /home/room/desk, parent /home/room',
         () {
       final path = r'/my/dir/from/the/root/lib/routes/home/room/desk.dart';
-      final route = RouteNode.fromLibraryPath(path, true);
-      expect(route.parent, '');
-      expect(route.path, '/home/room/desk');
+      final route = RouteInfo.fromLibraryPath(
+        path,
+        isRoot: true,
+        widgetName: 'HomeScreen',
+      );
+      expect(route.parentRoutePath, '');
+      expect(route.routePath, '/home/room/desk');
       expect(route.isRoot, isTrue);
     });
     test(
@@ -47,9 +51,13 @@ main() {
         () {
       final path =
           r'/my/dir/from/the/root/lib/routes/home/room/desk[.]drawer.dart';
-      final route = RouteNode.fromLibraryPath(path, true);
-      expect(route.parent, '');
-      expect(route.path, '/home/room/desk.drawer');
+      final route = RouteInfo.fromLibraryPath(
+        path,
+        isRoot: true,
+        widgetName: 'HomeScreen',
+      );
+      expect(route.parentRoutePath, '');
+      expect(route.routePath, '/home/room/desk.drawer');
       expect(route.isRoot, isTrue);
     });
   });

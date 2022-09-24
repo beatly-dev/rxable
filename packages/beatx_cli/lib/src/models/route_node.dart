@@ -5,27 +5,29 @@ import '../utils/path.dart';
 part 'route_node.g.dart';
 
 /// State of the route path
-/// [path] is the full path of the route
-/// [parent] is the parent of the route.
+/// [routePath] is the full path of the route
+/// [parentRoutePath] is the parent of the route.
 /// [isRoot] is true if the route is a page rather than a layout.
 @JsonSerializable()
-class RouteNode {
-  RouteNode({
-    required this.path,
+class RouteInfo {
+  RouteInfo({
     required this.libPath,
-    this.parent = '',
+    required this.routePath,
+    required this.widgetName,
+    this.parentRoutePath = '',
     this.isRoot = false,
     this.isLayout = false,
   });
   final String libPath;
-  final String path;
-  final String parent;
+  final String routePath;
+  final String parentRoutePath;
+  final String widgetName;
   final bool isRoot;
   final bool isLayout;
 
-  Map<String, dynamic> toJson() => _$RouteNodeToJson(this);
-  factory RouteNode.fromJson(Map<String, dynamic> json) =>
-      _$RouteNodeFromJson(json);
+  Map<String, dynamic> toJson() => _$RouteInfoToJson(this);
+  factory RouteInfo.fromJson(Map<String, dynamic> json) =>
+      _$RouteInfoFromJson(json);
 
   /// Convert a file path to a route path
   /// 1. Check if the path is a root or a sub page
@@ -34,21 +36,23 @@ class RouteNode {
   ///   3-1. Do not nesting if the path is wrapped with '[]'.
   ///       (e.g. /home[.room.desk] => /home.room.desk, /home[.]room.desk => /home.room/desk)
   /// 4. convert path params to go_router params. (e.g. /home/$room/desk => /home/:room/desk)
-  factory RouteNode.fromLibraryPath(
+  factory RouteInfo.fromLibraryPath(
     String path, {
+    required String widgetName,
     bool isRoot = false,
     bool isLayout = false,
   }) {
     final routePath = convertPathToRoute(path);
-    final parent = isRoot ? '' : parentPath(routePath);
+    final parentRoutePath = isRoot ? '' : parentPath(routePath);
     final nestedPath = convertFlatPathToNestedPath(routePath);
     final withParams = convertPathParamToGoParam(nestedPath);
 
-    return RouteNode(
+    return RouteInfo(
       libPath: path,
-      path: withParams,
+      widgetName: widgetName,
+      routePath: withParams,
       isRoot: isRoot || routePath == '/',
-      parent: parent,
+      parentRoutePath: parentRoutePath,
     );
   }
 }

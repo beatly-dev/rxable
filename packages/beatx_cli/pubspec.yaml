@@ -2,7 +2,7 @@ name: beatx_cli
 description: An opinionated framework for building Flutter apps. `beatx_rx`, `beatx_annotations`, `go_router`, `beatx_router`.
 version: 0.1.1
 homepage: https://github.com/beatly-dev/beatx
-issue_tracker: https://github.com/beatly-dev/issues
+issue_tracker: https://github.com/beatly-dev/beatx/issues
 
 environment:
   sdk: ">=2.18.0 <3.0.0"

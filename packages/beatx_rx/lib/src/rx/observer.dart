@@ -23,7 +23,7 @@ mixin StatelessReactiveMixin on StatelessWidget {
 }
 
 class _ReactableStatelessElement extends StatelessElement
-    with ObserverStateMixin {
+    with ReactiveStateMixin {
   _ReactableStatelessElement(StatelessWidget widget) : super(widget);
 }
 
@@ -34,12 +34,12 @@ mixin StatefulReactiveMixin on StatefulWidget {
 }
 
 class _ReactableStatefulElement extends StatefulElement
-    with ObserverStateMixin {
+    with ReactiveStateMixin {
   _ReactableStatefulElement(StatefulWidget widget) : super(widget);
 }
 
 /// A mixin to automatically rebuild the StatefulWidget's State
-mixin ObserverStateMixin on Element {
+mixin ReactiveStateMixin on Element {
   final _BeatxSubscription _subscription = _BeatxSubscription();
 
   @override
@@ -70,7 +70,7 @@ mixin ObserverStateMixin on Element {
   Extensions
 */
 
-extension WrapWithBeatxObserverBuilder on Widget Function(
+extension WrapWithReactiveBuilderWithBuildContext on Widget Function(
   BuildContext context,
 ) {
   /// Wrap the widget with [ReactiveBuilder] to automatically rebuild
@@ -79,7 +79,7 @@ extension WrapWithBeatxObserverBuilder on Widget Function(
       );
 }
 
-extension WrapWithBeatxObserver on Widget Function() {
+extension WrapWithReactiveBuilderWithoutBuildContext on Widget Function() {
   /// Wrap the widget with [ReactiveBuilder] to automatically rebuild
   Widget get observe => ReactiveBuilder(
         builder: (_) => this(),

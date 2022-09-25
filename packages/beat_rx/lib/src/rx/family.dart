@@ -1,7 +1,7 @@
 part of 'rx.dart';
 
-class FamilyRx<T, P> {
-  FamilyRx(
+class RxFamily<T, P> {
+  RxFamily(
     this.builder, {
     this.onDispose,
     this.autoDispose = false,
@@ -36,14 +36,14 @@ class FamilyRx<T, P> {
   }
 }
 
-extension TransformToFamilyRx<T, P> on T Function(P input) {
-  /// Get a [FamilyRx]
-  FamilyRx<T, P> rxFamily({
+extension TransformToRxFamily<T, P> on T Function(P input) {
+  /// Get a [RxFamily]
+  RxFamily<T, P> rxFamily({
     void Function(T lastValue)? onDispose,
     bool listenOnUnchanged = false,
     bool autoDispose = false,
   }) =>
-      FamilyRx<T, P>(
+      RxFamily<T, P>(
         this,
         autoDispose: autoDispose,
         onDispose: onDispose,

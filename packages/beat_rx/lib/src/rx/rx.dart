@@ -1,18 +1,24 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:async/async.dart';
 import 'package:flutter/widgets.dart';
 
+part 'computed.dart';
+part 'disposable.dart';
 part 'future.dart';
 part 'number.dart';
 part 'observer.dart';
 part 'string.dart';
 
 class _RxSubscription extends ChangeNotifier {
-  final List<Rx> _observables = [];
+  final HashSet<Rx> _observables = HashSet();
 
   /// Subscribe to the observable
   void subscribe(Rx obs) {
+    if (_observables.contains(obs)) {
+      return;
+    }
     _observables.add(obs);
     obs.addListener(notifyListeners);
   }
@@ -27,6 +33,7 @@ class _RxSubscription extends ChangeNotifier {
       }
       obs.removeListener(notifyListeners);
     }
+    _observables.clear();
   }
 }
 
@@ -66,87 +73,10 @@ class Rx<T> extends ChangeNotifier {
   }
 }
 
-/// Automatically dispose any of the Rx states when the last widget
-/// is disposed.
-class DisposableRx<T> extends Rx<T?> {
-  DisposableRx(
-    this.initialize, {
-    this.onDispose,
-    super.listenOnUnchanged,
-  }) : super(null);
-  bool initialized = false;
-
-  @override
-  T get value {
-    if (!initialized) {
-      _value = initialize();
-      initialized = true;
-    }
-    return super.value as T;
-  }
-
-  final T Function() initialize;
-
-  final void Function(T lastValue)? onDispose;
-
-  /// Dispose
-  void drop() {
-    if (_value != null) {
-      onDispose?.call(_value as T);
-    }
-    _value = null;
-    initialized = false;
-  }
-}
-
-/// A widget that rebuilds when the collection of [Rx]s changes.
-/// ComputedRx does not hold any object, so it does not need to be disposed.
-class ComputedRx<T> extends Rx<T?> {
-  ComputedRx(
-    this.compute, {
-    super.listenOnUnchanged = false,
-  }) : super(null);
-
-  /// A function that compute the wanted value
-  final T Function() compute;
-
-  @override
-  T get _value => compute();
-
-  @override
-  T get value {
-    Rx._observer?.subscribe(this);
-    return _value;
-  }
-
-  /// ComputedRx can't assign new value.
-  @override
-  set value(T? newVal) {}
-}
-
 extension TransformToRx<T> on T {
   /// Get a Rx
   Rx<T> get rx => Rx(this);
 
   /// Get a Rx, notify even when the value is not changed
   Rx<T> get rxAlways => Rx(this, listenOnUnchanged: true);
-
-  /// Get a Rx, dispose when there is no widget listening to it
-  DisposableRx<T> rxAutoDispose(
-    void Function(T lastValue)? onDispose, {
-    bool listenOnUnchanged = false,
-  }) =>
-      DisposableRx(
-        () => this,
-        onDispose: onDispose,
-        listenOnUnchanged: listenOnUnchanged,
-      );
-}
-
-extension TransformToComputedRx<T> on T Function() {
-  /// Get a Rx
-  ComputedRx<T> get rx => ComputedRx(this);
-
-  /// Get a Rx, notify even when the value is not changed
-  ComputedRx<T> get rxAlways => ComputedRx(this, listenOnUnchanged: true);
 }

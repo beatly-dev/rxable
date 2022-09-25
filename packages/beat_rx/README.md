@@ -7,9 +7,9 @@ A simple but reactful state management library for Flutter.
 
 # Usage
 
-## BeatxRx
+## Rx
 
-`BeatxRx`/`Rx` is an observable unit. You can `.rx` on any object to create an observable.
+`Rx` is an observable unit. You can `.rx` on any object to create an observable.
 
 ### Primitive types
 

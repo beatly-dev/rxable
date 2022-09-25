@@ -203,6 +203,63 @@ class MyStatefulSomeWidget extends StatefulWidget with StatefulReactiveMixin {
 }
 ```
 
+# FutureRx
+
+`FutureRx` is a special type of `Rx` that observes a `Future`.
+`FutureRx` will rebuild the widgets that depend on it when the `Future` state changes.
+Defining a `FutureRx` is same as defining a `Rx`.
+
+```dart
+Future<int> delayedCounter() async {
+	await Future.delayed(Duration(seconds: 3));
+	return 1;
+}
+
+final myDelayedRx = delayedCounter().rx;
+```
+
+## Reactive to Future
+
+You can use a set of getters and methods to observe the state of the `Future`.
+
+- `isCompleted`, `isError`, `isLoading`, and `isCanceled` getters.
+- `when` and `map` methods
+
+All of these getters and methods are reactive. They will rebuild the widgets that depend on them
+when the `Future` state changes.
+
+```dart
+// `myDelayedRx` from the above example
+
+ReactiveBuilder(
+	builder: (BuildContext context) {
+		/// Provide all the possible states of the `Future`
+		return myDelayedRx.map(
+			loading: () => Text('Loading...'),
+			error: (error) => Text('Error: $error'),
+			completed: (value) => Text('Completed: $value'),
+			canceled: () => Text('Canceled'),
+		);
+
+		/// Or, at least `orElse` callback,
+		return myDelayedRx.map(
+			orElse: () => Text('Loading...'),
+			completed: (value) => Text('Completed: $value'),
+		);
+	}
+)
+```
+
+`when` method is similar to `map` method, but it doesn't return a value.
+
+## Canceling a Future
+
+You can cancel the ongoing `Future` with `cancel()` method.
+
+```dart
+myDelayedRx.cancel();
+```
+
 # Examples
 
 You can find examples from [examples](https://github.com/beatly-dev/beatx/tree/main/examples/rx)

@@ -46,7 +46,7 @@ class User {
 final user = User('Oh Gihwan'.rx, 20.rx).rx;
 ```
 
-### Comprehensive values
+### Composable values
 
 If you want to create observables that depend on other observables,
 you can use `ComputedRx` class.
@@ -68,6 +68,53 @@ final currentTime = ComputedRx(() => '${currentHour}:${currentMinute}:${currentS
 ```
 
 The other method and usage of `ComputedRx` are same as `Rx`.
+
+### `.rxFamily` - Dynamically Created Rx Family
+
+If you want to delay the createion of the `Rx` until you get the required information,
+you can use `.rxFamily` or `RxFamily`.
+
+```dart
+final _counterTemplate = ((input) => input).rxFamily();
+
+/// ....
+final _counterFromZero = _counterTemplate(0);
+final _counterFromTen  = _counterTemplate(10);
+```
+
+## Change the state
+
+You can change the state of the observable by calling `.value = ...` on it.
+
+```dart
+final counter = 0.rx;
+
+// ...
+// this will rebuild the RxObserver widgets that depend on the counter
+counter.value++;
+```
+
+### Custom state
+
+If you make the fields of your class observable,
+you can change the state of the class by calling `.value = ...` on the fields.
+But if you don't make the fields observable, but you still want to change the state of the class
+with the reactive way, you can use `rebuild()` method.
+
+```dart
+class User {
+	User(this.name);
+	var String name;
+}
+final user = User('Oh Gihwan').rx;
+
+// ...
+// this will not rebuild your RxObserver widgets
+user.name = 'Gihwan Oh';
+
+// this will rebuild your RxObserver widgets
+user.rebuild();
+```
 
 ## ReactiveBuilder
 
@@ -103,40 +150,6 @@ class MyWidget extends StatelessWidget {
 		}).observe;
 	}
 }
-```
-
-## Change the state
-
-You can change the state of the observable by calling `.value = ...` on it.
-
-```dart
-final counter = 0.rx;
-
-// ...
-// this will rebuild the RxObserver widgets that depend on the counter
-counter.value++;
-```
-
-### Custom state
-
-If you make the fields of your class observable,
-you can change the state of the class by calling `.value = ...` on the fields.
-But if you don't make the fields observable, but you still want to change the state of the class
-with the reactive way, you can use `rebuild()` method.
-
-```dart
-class User {
-	User(this.name);
-	var String name;
-}
-final user = User('Oh Gihwan').rx;
-
-// ...
-// this will not rebuild your RxObserver widgets
-user.name = 'Gihwan Oh';
-
-// this will rebuild your RxObserver widgets
-user.rebuild();
 ```
 
 ## Custom ReactiveBuilder
@@ -257,7 +270,8 @@ ReactiveBuilder(
 You can cancel the ongoing `Future` with `cancel()` method.
 
 ```dart
-myDelayedRx.cancel();
+// You can omit the `await` keyword
+await myDelayedRx.cancel();
 ```
 
 # Examples

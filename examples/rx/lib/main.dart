@@ -1,5 +1,6 @@
 import 'package:beatx_rx/beatx_rx.dart';
 import 'package:flutter/material.dart';
+import 'package:rx/dummy.dart';
 
 void main() {
   runApp(const MyApp());
@@ -48,10 +49,13 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-final _counter = 0.rx;
+final _counter = 0.rxAutoDispose((lastValue) {
+  print("Dispose counter 1 - last was $lastValue");
+});
 final _counter2 = 1.rx;
 final _doubled = ComputedRx(() => _counter * 2);
 final _mixed = ComputedRx(() => _counter.value * 2 + _counter2.value);
+final _myData = MyClassData(0.rx, 'hello'.rx).rx;
 
 class MyClassData {
   final Rx<int> value;
@@ -60,8 +64,14 @@ class MyClassData {
   MyClassData(this.value, this.name);
 }
 
+Future<int> tester() async {
+  await Future.delayed(const Duration(seconds: 3));
+  return 1;
+}
+
+final _async = tester().rx;
+
 class _MyHomePageState extends State<MyHomePage> {
-  final _myData = MyClassData(0.rx, 'hello'.rx).rx;
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -71,11 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
     return Scaffold(
-      appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(),
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
@@ -119,6 +125,10 @@ class _MyHomePageState extends State<MyHomePage> {
                   'my data is ${_myData.value.name.value}: ${_myData.value.value.value}',
                   style: Theme.of(context).textTheme.headline4,
                 )).observe,
+            (() => _async.map(
+                  completed: (result) => Text('Future is $result'),
+                  orElse: () => const Text(' Future is loading...'),
+                )).observe,
             CustomObserver(counter: _counter),
             ReactiveBuilder(builder: (_) {
               return Text(
@@ -132,21 +142,25 @@ class _MyHomePageState extends State<MyHomePage> {
       floatingActionButton: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          FloatingActionButton(
-              onPressed: () => _counter.value++,
-              tooltip: 'Increment count1',
-              child: const Text('count1')),
-          FloatingActionButton(
-              onPressed: () => _counter2.value++,
-              tooltip: 'Increment count2',
-              child: const Text('count2')),
-          FloatingActionButton(
+          TextButton(
+              onPressed: () => _counter.value++, child: const Text('count1')),
+          TextButton(
+              onPressed: () => _counter2.value++, child: const Text('count2')),
+          TextButton(
               onPressed: () {
                 _myData.value.value.value++;
                 _myData.rebuild();
               },
-              tooltip: 'My data',
               child: const Text('mydata')),
+          TextButton(
+              onPressed: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) {
+                    return const Dummy();
+                  }),
+                );
+              },
+              child: const Text('replace')),
         ],
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
@@ -158,7 +172,7 @@ class CustomObserver extends StatelessWidget with StatelessReactiveMixin {
     required this.counter,
     super.key,
   });
-  final Rx<int> counter;
+  final DisposableRx<int> counter;
   @override
   Widget build(BuildContext context) {
     return Text("You clicked the button $counter times");

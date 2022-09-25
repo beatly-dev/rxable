@@ -1,4 +1,4 @@
-part of '../rx.dart';
+part of 'rx.dart';
 
 /// Utility extension for [num]s.
 extension BeatxRxNum on BeatxRx<num> {

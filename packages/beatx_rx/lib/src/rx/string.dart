@@ -1,4 +1,4 @@
-part of '../rx.dart';
+part of 'rx.dart';
 
 extension RxString on BeatxRx<String> {
   /// Concatenate the string with [other]

@@ -1,4 +1,4 @@
-import 'package:beatx_rx/beatx_rx.dart';
+import 'package:beat_rx/beat_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:rx/dummy.dart';
 

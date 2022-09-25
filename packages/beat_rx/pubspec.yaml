@@ -1,4 +1,4 @@
-name: beatx_rx
+name: beat_rx
 description: A reactive state management library for Flutter based on an opnionated reactive programming model.
 version: 0.4.0
 homepage: https://github.com/beatly-dev/beatx
@@ -11,7 +11,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  async: 2.9.0
+  async: ^2.0.0
 
 dev_dependencies:
   flutter_test:

@@ -37,10 +37,10 @@ or you can make every field of your class observable.
 
 ```dart
 class User {
-	final Rx<String> name;
-	final Rx<int> age;
+  final Rx<String> name;
+  final Rx<int> age;
 
-	User(this.name, this.age);
+  User(this.name, this.age);
 }
 
 final user = User('Oh Gihwan'.rx, 20.rx).rx;
@@ -103,8 +103,8 @@ with the reactive way, you can use `rebuild()` method.
 
 ```dart
 class User {
-	User(this.name);
-	var String name;
+  User(this.name);
+  var String name;
 }
 final user = User('Oh Gihwan').rx;
 
@@ -123,15 +123,15 @@ You don't need to explicitly define what you are depending on. Just wrap your wi
 
 ```dart
 class MyWidget extends StatelessWidget {
-	final counter = 0.rx;
-	@override
-	Widget build(BuildContext context) {
-		return ReactiveBuilder(
-			builder: (BuildContext context) {
-				return Text(counter.value.toString());
-			},
-		);
-	}
+  final counter = 0.rx;
+  @override
+  Widget build(BuildContext context) {
+    return ReactiveBuilder(
+      builder: (BuildContext context) {
+        return Text(counter.value.toString());
+      },
+    );
+  }
 }
 ```
 
@@ -142,12 +142,12 @@ You can omit the `BuildContext` parameter if you don't need it.
 
 ```dart
 class MyWidget extends StatelessWidget {
-	final counter = 0.rx;
-	@override
-	Widget build(BuildContext context) {
-		return (() {
-			return Text(counter.value.toString());
-		}).observe;
+  final counter = 0.rx;
+  @override
+  Widget build(BuildContext context) {
+    return (() {
+      return Text(counter.value.toString());
+    }).observe;
 	}
 }
 ```
@@ -171,10 +171,10 @@ final counter = 0.rx;
 
 /// ...
 class MyObserverWidget extends StatelessWidget with StatelessReactiveMixin {
-	@override
-	Widget build(BuildContext context) {
-		return Text('You clicked the button ${counter} times!');
-	}
+  @override
+  Widget build(BuildContext context) {
+    return Text('You clicked the button ${counter} times!');
+  }
 }
 ```
 
@@ -188,17 +188,15 @@ final counter = 0.rx;
 
 /// ...
 class MyObserverWidget extends StatefulWidget {
-	@override
-	MyObserverWidgetState createState() => MyObserverWidgetState();
+  @override
+  MyObserverWidgetState createState() => MyObserverWidgetState();
 }
 
 class MyObserverWidgetState extends State<MyObserverWidget> with ReactiveStateMixin {
-	/// You can use initState, dispose, didUpdateWidget, didChangeDependencies
-
-	@override
-	Widget build(BuildContext context) {
-		return Text('You clicked the button ${counter} times!');
-	}
+  @override
+  Widget build(BuildContext context) {
+    return Text('You clicked the button ${counter} times!');
+  }
 }
 ```
 
@@ -209,10 +207,10 @@ In this case, you can mixin `StatefulReactiveMixin`.
 
 ```dart
 class MyStatefulSomeWidget extends StatefulWidget with StatefulReactiveMixin {
-	@override
-	Widget build(BuildContext context) {
-		return Text('You clicked the button ${counter} times!');
-	}
+  @override
+  Widget build(BuildContext context) {
+    return Text('You clicked the button ${counter} times!');
+  }
 }
 ```
 
@@ -224,8 +222,8 @@ Defining a `FutureRx` is same as defining a `Rx`.
 
 ```dart
 Future<int> delayedCounter() async {
-	await Future.delayed(Duration(seconds: 3));
-	return 1;
+  await Future.delayed(Duration(seconds: 3));
+  return 1;
 }
 
 final myDelayedRx = delayedCounter().rx;
@@ -245,21 +243,21 @@ when the `Future` state changes.
 // `myDelayedRx` from the above example
 
 ReactiveBuilder(
-	builder: (BuildContext context) {
-		/// Provide all the possible states of the `Future`
-		return myDelayedRx.map(
-			loading: () => Text('Loading...'),
-			error: (error) => Text('Error: $error'),
-			completed: (value) => Text('Completed: $value'),
-			canceled: () => Text('Canceled'),
-		);
+  builder: (BuildContext context) {
+    /// Provide all the possible states of the `Future`
+    return myDelayedRx.map(
+      loading: () => Text('Loading...'),
+      error: (error) => Text('Error: $error'),
+      completed: (value) => Text('Completed: $value'),
+      canceled: () => Text('Canceled'),
+    );
 
-		/// Or, at least `orElse` callback,
-		return myDelayedRx.map(
-			orElse: () => Text('Loading...'),
-			completed: (value) => Text('Completed: $value'),
-		);
-	}
+    /// Or, at least `orElse` callback,
+    return myDelayedRx.map(
+      orElse: () => Text('Loading...'),
+      completed: (value) => Text('Completed: $value'),
+    );
+  }
 )
 ```
 

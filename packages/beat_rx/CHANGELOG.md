@@ -1,3 +1,7 @@
+## 0.5.0+2
+
+ - **FIX**: match the return type.
+
 ## 0.5.0+1
 
  - **REFACTOR**: rename FamilyRx to RxFamily.

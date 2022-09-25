@@ -48,6 +48,10 @@ mixin ReactiveStateMixin on Element {
     super.mount(parent, newSlot);
   }
 
+  void rebuildWidget() {
+    markNeedsBuild();
+  }
+
   @override
   void rebuild() {
     final previousObserver = Rx._observer;

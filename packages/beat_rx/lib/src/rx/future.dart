@@ -5,10 +5,10 @@ part of 'rx.dart';
 /// - Restartable
 /// For [Future]s.
 class FutureRx<T> extends Rx<CancelableCompleter<T>> {
-  FutureRx(this._future) : super(CancelableCompleter<T>()) {
+  FutureRx(this._future) : super(() => CancelableCompleter<T>()) {
     _future.then((result) {
       _result = result;
-      _value.complete(result);
+      _value!.complete(result);
       rebuild();
     }).catchError((error) {
       _isError = true;
@@ -47,7 +47,9 @@ class FutureRx<T> extends Rx<CancelableCompleter<T>> {
 
   /// Cancel the future
   Future<dynamic> cancel() async {
-    _value.operation.cancel().then((_) => rebuild());
+    _value!.operation.cancel().then((_) {
+      rebuild();
+    });
   }
 
   /// Map the result of the future.
@@ -115,6 +117,6 @@ You should provide at least `orElse` callback or all of the following callbacks:
 }
 
 extension TransformToBeatxFutureObservable<T> on Future<T> {
-  /// Get a FutureRx
+  /// Get a [FutureRx]
   FutureRx<T> get rx => FutureRx(this);
 }

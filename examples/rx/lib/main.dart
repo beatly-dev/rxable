@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:beat_rx/beat_rx.dart';
 import 'package:flutter/material.dart';
 import 'package:rx/dummy.dart';
@@ -53,8 +55,10 @@ final _counter = 0.rxAutoDispose((lastValue) {
   print("Dispose counter 1 - last was $lastValue");
 });
 final _counter2 = 1.rx;
-final _doubled = ComputedRx(() => _counter * 2);
-final _mixed = ComputedRx(() => _counter.value * 2 + _counter2.value);
+final _counterFamily = ((mult) => mult * _counter.value).rxFamily();
+final _computed = (() {
+  return _counter.value * 2 + _counter2.value;
+}).rx;
 final _myData = MyClassData(0.rx, 'hello'.rx).rx;
 
 class MyClassData {
@@ -72,6 +76,7 @@ Future<int> tester() async {
 final _async = tester().rx;
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _myDouble = _counterFamily(2);
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -106,24 +111,19 @@ class _MyHomePageState extends State<MyHomePage> {
               'You have pushed the button this many times:',
             ),
             (() => Text(
-                  'counter1 $_counter',
-                  style: Theme.of(context).textTheme.headline4,
+                  'counter1 $_counter ',
                 )).observe,
             (() => Text(
-                  'counter2 $_counter2',
-                  style: Theme.of(context).textTheme.headline4,
+                  'counter2 $_counter2 ',
                 )).observe,
             (() => Text(
-                  'doubled counter1 ${_doubled.value}',
-                  style: Theme.of(context).textTheme.headline4,
+                  'doubled counter1 ${_myDouble.value}',
                 )).observe,
             (() => Text(
-                  'mixed counter1 and counter2 ${_mixed.value}',
-                  style: Theme.of(context).textTheme.headline4,
+                  'mixed counter1 and counter2 ${_computed.value}',
                 )).observe,
             (() => Text(
-                  'my data is ${_myData.value.name.value}: ${_myData.value.value.value}',
-                  style: Theme.of(context).textTheme.headline4,
+                  'my data is ${_myData.value.name.value}',
                 )).observe,
             (() => _async.map(
                   completed: (result) => Text('Future is $result'),
@@ -133,7 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
             ReactiveBuilder(builder: (_) {
               return Text(
                 'counter1 ${_counter.value}',
-                style: Theme.of(context).textTheme.headline4,
               );
             })
           ],
@@ -146,6 +145,9 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () => _counter.value++, child: const Text('count1')),
           TextButton(
               onPressed: () => _counter2.value++, child: const Text('count2')),
+          TextButton(
+              onPressed: () => _myDouble.value++,
+              child: const Text('increase my double')),
           TextButton(
               onPressed: () {
                 _myData.value.value.value++;
@@ -172,7 +174,7 @@ class CustomObserver extends StatelessWidget with StatelessReactiveMixin {
     required this.counter,
     super.key,
   });
-  final DisposableRx<int> counter;
+  final Rx<int> counter;
   @override
   Widget build(BuildContext context) {
     return Text("You clicked the button $counter times");

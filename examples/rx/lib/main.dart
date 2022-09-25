@@ -69,11 +69,13 @@ class MyClassData {
 }
 
 Future<int> tester() async {
-  await Future.delayed(const Duration(seconds: 3));
-  return 1;
+  final dep = _counter2.value;
+  await Future.delayed(const Duration(seconds: 1));
+  return dep;
 }
 
-final _async = tester().rx;
+final _future = tester().rx;
+final _async = tester.rx;
 
 class _MyHomePageState extends State<MyHomePage> {
   final _myDouble = _counterFamily(2);
@@ -125,9 +127,21 @@ class _MyHomePageState extends State<MyHomePage> {
             (() => Text(
                   'my data is ${_myData.value.name.value}',
                 )).observe,
+            (() => _future.map(
+                  completed: (result) {
+                    return Text('Future is $result');
+                  },
+                  orElse: () {
+                    return const Text(' Future is loading...');
+                  },
+                )).observe,
             (() => _async.map(
-                  completed: (result) => Text('Future is $result'),
-                  orElse: () => const Text(' Future is loading...'),
+                  completed: (result) {
+                    return Text('Reactive Future is $result');
+                  },
+                  orElse: () {
+                    return const Text('Reactive Future is loading...');
+                  },
                 )).observe,
             CustomObserver(counter: _counter),
             ReactiveBuilder(builder: (_) {

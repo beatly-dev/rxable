@@ -1,10 +1,41 @@
 part of 'rx.dart';
 
 /// For [Future]s.
-class FutureRx<T> extends Rx<Future<T>> {
-  FutureRx(Future<T> future) : super(() => future) {
+class AsyncRx<T> extends Rx<Future<T>> {
+  AsyncRx(Future<T> Function() async) : super(() => async());
+
+  CancelableOperation<T>? _completer;
+
+  CancelableOperation<T>? get completer {
+    /// intentionally access `value` getter to register this [Rx]
+    final next = super.value;
+    if (_prev != next) {
+      _setupCompleter(next);
+    }
+    _prev = next;
+    return _completer;
+  }
+
+  Future<T>? _prev;
+
+  @override
+  Future<T> get value {
+    final next = super.value;
+    if (_prev != next) {
+      _setupCompleter(next);
+    }
+    _prev = next;
+    return next;
+  }
+
+  /// Can't set new async method
+  @override
+  set value(_) {}
+
+  void _setupCompleter(Future<T> future) {
+    _completer?.cancel();
     _completer = CancelableOperation<T>.fromFuture(future);
-    _completer.then(
+    _completer?.then(
       (result) {
         _result = result;
         rebuild();
@@ -15,14 +46,6 @@ class FutureRx<T> extends Rx<Future<T>> {
         rebuild();
       },
     );
-  }
-
-  late final CancelableOperation<T> _completer;
-
-  CancelableOperation<T> get completer {
-    /// intentionally access `value` getter to register this [Rx]
-    final _ = value;
-    return _completer;
   }
 
   bool _isError = false;
@@ -41,37 +64,37 @@ class FutureRx<T> extends Rx<Future<T>> {
   dynamic _errorResult;
 
   /// The future is completed.
-  bool get isCompleted => completer.isCompleted;
+  bool get isCompleted => completer?.isCompleted ?? false;
 
   /// The result of the future.
   late T _result;
 
   /// The future is canceled.
-  bool get isCanceled => completer.isCanceled;
+  bool get isCanceled => completer?.isCanceled ?? false;
 
   /// The future is in progress.
   bool get isLoading => !isCompleted && !isCanceled && !isError;
 
   /// Cancel the future
   Future<dynamic> cancel() async {
-    completer.cancel().then((_) {
+    completer?.cancel().then((_) {
       rebuild();
     });
   }
 
   @override
   void drop() {
-    _completer.cancel();
+    _completer?.cancel();
     super.drop();
   }
 
   /// Map the result of the future.
-  P map<P>({
-    P Function(T result)? completed,
-    P Function()? loading,
-    P Function(dynamic error)? error,
-    P Function()? canceled,
-    P Function()? orElse,
+  R map<R>({
+    R Function(T result)? completed,
+    R Function()? loading,
+    R Function(dynamic error)? error,
+    R Function()? canceled,
+    R Function()? orElse,
   }) {
     assert(
         (completed != null &&
@@ -129,7 +152,7 @@ You should provide at least `orElse` callback or all of the following callbacks:
   }
 }
 
-extension TransformToFutureRx<T> on Future<T> {
-  /// Get a [FutureRx]
-  FutureRx<T> get rx => FutureRx(this);
+extension TransformToAsyncRx<T> on Future<T> Function() {
+  /// Get a [AsyncRx]
+  AsyncRx<T> get rx => AsyncRx(this);
 }

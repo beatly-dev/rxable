@@ -263,7 +263,7 @@ ReactiveBuilder(
 
 `when` method is similar to `map` method, but it doesn't return a value.
 
-## Canceling a Future
+### Canceling a Future
 
 You can cancel the ongoing `Future` with `cancel()` method.
 
@@ -272,7 +272,56 @@ You can cancel the ongoing `Future` with `cancel()` method.
 await myDelayedRx.cancel();
 ```
 
+## AsyncRx - Futures depending on other Rx
+
+If your async method depends on other `Rx`, you can create a reactive `AsyncRx`.
+`FutureRx` is holding a `Future` itself, but `AsyncRx` is holding a function that returns a `Future`.
+Just use `.rx` on your async method, not on a `Future` result.
+Let's see the example.
+
+```dart
+/// Somewhere in your code
+final counter = 0.rx;
+
+/// ...
+Future<int> delayedCounter() async {
+  /// All the dependencies should not be in a async gap
+  final count = counter.value;
+  await Future.delayed(Duration(seconds: 1));
+  return count;
+}
+
+/// ** There is no method caller `()`, just make method itself a reactive **
+final reactiveDelayedCounter = delayedCounter.rx;
+
+/// Now, same as `FutureRx`
+ReactiveBuilder(
+  builder: (BuildContext context) {
+    /// Provide all the possible states of the `Future`
+    return reactiveDelayedCounter.map(
+      loading: () => Text('Loading...'),
+      error: (error) => Text('Error: $error'),
+      completed: (value) => Text('Completed: $value'),
+      canceled: () => Text('Canceled'),
+    );
+
+    /// Or, at least `orElse` callback,
+    return reactiveDelayedCounter.map(
+      orElse: () => Text('Loading...'),
+      completed: (value) => Text('Completed: $value'),
+    );
+  }
+)
+```
+
+In the above code, it the `counter` changes, the previous `reactiveDelayedCounter` will be canceled and
+rebuild the `ReactiveBuilder` with a new result of `reactiveDelayedCounter`.
+
 # Examples
 
 You can find examples from [examples](https://github.com/beatly-dev/beatx/tree/main/examples/rx)
 directory.
+
+```
+
+```

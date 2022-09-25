@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'package:async/async.dart';
 import 'package:flutter/widgets.dart';
 
+part 'async.dart';
 part 'family.dart';
 part 'future.dart';
 part 'number.dart';
@@ -12,7 +13,6 @@ part 'string.dart';
 
 class _RxSubscription extends ChangeNotifier {
   final HashSet<Rx> observables = HashSet();
-  final _listeners = <Rx, void Function()>{};
 
   /// Subscribe to the observable
   void subscribe(Rx obs) {
@@ -20,18 +20,13 @@ class _RxSubscription extends ChangeNotifier {
       return;
     }
     observables.add(obs);
-    void notifyAll() {
-      notifyListeners();
-    }
-
-    _listeners[obs] ??= notifyAll;
-    obs.addListener(_listeners[obs]!);
+    obs.addListener(notifyListeners);
   }
 
   /// Unsubscribe all observables
   void unsubscribeAll() {
     for (final obs in observables) {
-      obs.removeListener(_listeners[obs]!);
+      obs.removeListener(notifyListeners);
       if (!obs.hasListeners) {
         /// Drop and initilize Rx,
         /// when there is no widget listening to it anymore.
@@ -58,9 +53,14 @@ class Rx<T> extends ChangeNotifier {
   static Rx? _notifier;
 
   /// The direct parent of the current notifier ([Rx])
-  static Rx? _dependent;
+  static Rx? _dependant;
 
-  final _depdendencies = HashSet<Rx>();
+  /// [Rx]s that current [Rx] depends on
+  final _dependancies = HashSet<Rx>();
+
+  /// The latest value of the dependant [Rx]
+  /// to check if the value is changed
+  final _dependantValues = <Rx, dynamic>{};
 
   /// Notify even when the value is not changed
   final bool listenOnUnchanged;
@@ -83,30 +83,35 @@ class Rx<T> extends ChangeNotifier {
   late T? _value;
 
   /// If this [Rx] depends on the current [_notifier]
-  bool _isDependent() {
-    return _depdendencies.contains(_notifier) ||
-        _depdendencies.fold(
+  /// and the value was changed.
+  bool _needUpdate() {
+    return (_dependancies.contains(_notifier) &&
+            _dependantValues[_notifier] != _notifier?._value) ||
+        _dependancies.fold(
           false,
-          (isDependent, rx) => isDependent || rx._isDependent(),
+          (isDependent, rx) => isDependent || rx._needUpdate(),
         );
   }
 
   /// Get value and subscribe to the observable
   T get value {
-    final isDepending = _isDependent();
+    final needUpdate = _needUpdate();
 
     /// Clear the previous dependencies
-    _depdendencies.clear();
-    final prevDep = _dependent;
-    _dependent = this;
+    _dependancies.clear();
+    final prevDep = _dependant;
+    _dependant = this;
     final nextCandidate = compute();
-    _dependent = prevDep;
-    _dependent?._depdendencies.add(this);
+    _dependant = prevDep;
+    _dependant?._dependancies.add(this);
 
     /// Release all of the previous dependencies
-    if (!_initialized || isDepending) {
+    if (!_initialized || needUpdate) {
       _value = nextCandidate;
       _initialized = true;
+      if (_notifier != null) {
+        _dependantValues[_notifier!] = _notifier?._value;
+      }
     }
 
     _observer?.subscribe(this);

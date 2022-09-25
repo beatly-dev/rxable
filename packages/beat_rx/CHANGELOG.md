@@ -1,3 +1,7 @@
+## 0.4.0+1
+
+ - **REFACTOR**: rename beatx_rx to beat_rx.
+
 ## 0.4.0
 
 > Note: This release has breaking changes.

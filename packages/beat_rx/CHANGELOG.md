@@ -1,3 +1,11 @@
+## 0.5.0
+
+> Note: This release has breaking changes.
+
+ - **REFACTOR**: refactor class names.
+ - **FIX**: duplicated notifications.
+ - **BREAKING** **FEAT**: `rxFamily`, refactor code.
+
 ## 0.4.0+1
 
  - **REFACTOR**: rename beatx_rx to beat_rx.

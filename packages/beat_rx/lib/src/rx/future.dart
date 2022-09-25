@@ -1,14 +1,13 @@
 part of 'rx.dart';
 
-/// TODO
-/// - Disposable
-/// - Restartable
 /// For [Future]s.
-class FutureRx<T> extends Rx<CancelableCompleter<T>> {
-  FutureRx(this._future) : super(() => CancelableCompleter<T>()) {
+class FutureRx<T> extends Rx<Future<T>> {
+  FutureRx(Future<T> future)
+      : _future = future,
+        super(() => future) {
     _future.then((result) {
       _result = result;
-      _value!.complete(result);
+      _completer.complete(result);
       rebuild();
     }).catchError((error) {
       _isError = true;
@@ -16,6 +15,9 @@ class FutureRx<T> extends Rx<CancelableCompleter<T>> {
       rebuild();
     });
   }
+
+  late final _completer = CancelableCompleter<T>();
+
   final Future<T> _future;
 
   bool _isError = false;
@@ -34,22 +36,28 @@ class FutureRx<T> extends Rx<CancelableCompleter<T>> {
   dynamic _errorResult;
 
   /// The future is completed.
-  bool get isCompleted => value.isCompleted;
+  bool get isCompleted => _completer.isCompleted;
 
   /// The result of the future.
   late T _result;
 
   /// The future is canceled.
-  bool get isCanceled => value.isCanceled;
+  bool get isCanceled => _completer.isCanceled;
 
   /// The future is in progress.
   bool get isLoading => !isCompleted && !isCanceled && !_isError;
 
   /// Cancel the future
   Future<dynamic> cancel() async {
-    _value!.operation.cancel().then((_) {
+    _completer.operation.cancel().then((_) {
       rebuild();
     });
+  }
+
+  @override
+  void drop() {
+    cancel();
+    super.drop();
   }
 
   /// Map the result of the future.

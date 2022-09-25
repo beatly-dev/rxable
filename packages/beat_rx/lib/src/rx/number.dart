@@ -1,7 +1,7 @@
 part of 'rx.dart';
 
 /// Utility extension for [num]s.
-extension BeatxRxNum on BeatxRx<num> {
+extension BeatxRxNum on Rx<num> {
   /// Plus operator
   num operator +(num other) => value + other;
 
@@ -106,7 +106,7 @@ extension BeatxRxNum on BeatxRx<num> {
 }
 
 /// Utility extension for nullable [num]s.
-extension BeatxRxNullableNum on BeatxRx<num?> {
+extension BeatxRxNullableNum on Rx<num?> {
   /// Plus operator
   num? operator +(num other) {
     final current = value;

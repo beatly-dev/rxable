@@ -8,11 +8,11 @@ part 'number.dart';
 part 'observer.dart';
 part 'string.dart';
 
-class _BeatxSubscription extends ChangeNotifier {
-  final List<BeatxRx> _observables = [];
+class _RxSubscription extends ChangeNotifier {
+  final List<Rx> _observables = [];
 
   /// Subscribe to the observable
-  void subscribe(BeatxRx obs) {
+  void subscribe(Rx obs) {
     _observables.add(obs);
     obs.addListener(notifyListeners);
   }
@@ -30,12 +30,10 @@ class _BeatxSubscription extends ChangeNotifier {
   }
 }
 
-typedef Rx<T> = BeatxRx<T>;
-
 /// Reactive data class
-class BeatxRx<T> extends ChangeNotifier {
-  BeatxRx(this._value, {this.listenOnUnchanged = false});
-  static _BeatxSubscription? _observer;
+class Rx<T> extends ChangeNotifier {
+  Rx(this._value, {this.listenOnUnchanged = false});
+  static _RxSubscription? _observer;
   final bool listenOnUnchanged;
 
   late T _value;
@@ -70,7 +68,7 @@ class BeatxRx<T> extends ChangeNotifier {
 
 /// Automatically dispose any of the Rx states when the last widget
 /// is disposed.
-class DisposableRx<T> extends BeatxRx<T?> {
+class DisposableRx<T> extends Rx<T?> {
   DisposableRx(
     this.initialize, {
     this.onDispose,
@@ -101,9 +99,9 @@ class DisposableRx<T> extends BeatxRx<T?> {
   }
 }
 
-/// A widget that rebuilds when the collection of [BeatxRx]s changes.
+/// A widget that rebuilds when the collection of [Rx]s changes.
 /// ComputedRx does not hold any object, so it does not need to be disposed.
-class ComputedRx<T> extends BeatxRx<T?> {
+class ComputedRx<T> extends Rx<T?> {
   ComputedRx(
     this.compute, {
     super.listenOnUnchanged = false,
@@ -117,7 +115,7 @@ class ComputedRx<T> extends BeatxRx<T?> {
 
   @override
   T get value {
-    BeatxRx._observer?.subscribe(this);
+    Rx._observer?.subscribe(this);
     return _value;
   }
 
@@ -126,12 +124,12 @@ class ComputedRx<T> extends BeatxRx<T?> {
   set value(T? newVal) {}
 }
 
-extension TransformToBeatxObservable<T> on T {
+extension TransformToRx<T> on T {
   /// Get a Rx
-  BeatxRx<T> get rx => BeatxRx(this);
+  Rx<T> get rx => Rx(this);
 
   /// Get a Rx, notify even when the value is not changed
-  BeatxRx<T> get rxAlways => BeatxRx(this, listenOnUnchanged: true);
+  Rx<T> get rxAlways => Rx(this, listenOnUnchanged: true);
 
   /// Get a Rx, dispose when there is no widget listening to it
   DisposableRx<T> rxAutoDispose(
@@ -145,7 +143,7 @@ extension TransformToBeatxObservable<T> on T {
       );
 }
 
-extension TransformToComputedObservable<T> on T Function() {
+extension TransformToComputedRx<T> on T Function() {
   /// Get a Rx
   ComputedRx<T> get rx => ComputedRx(this);
 

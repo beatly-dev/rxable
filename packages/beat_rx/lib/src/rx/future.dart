@@ -4,7 +4,7 @@ part of 'rx.dart';
 /// - Disposable
 /// - Restartable
 /// For [Future]s.
-class FutureRx<T> extends BeatxRx<CancelableCompleter<T>> {
+class FutureRx<T> extends Rx<CancelableCompleter<T>> {
   FutureRx(this._future) : super(CancelableCompleter<T>()) {
     _future.then((result) {
       _result = result;

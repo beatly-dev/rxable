@@ -1,8 +1,8 @@
 part of 'rx.dart';
 
 /// A Helper widget to automatically rebuild the widget
-/// when the [BeatxRx] changes.
-/// You don't need to explicitly provide your [BeatxRx] to this widget.
+/// when the [Rx] changes.
+/// You don't need to explicitly provide your [Rx] to this widget.
 class ReactiveBuilder extends StatelessWidget with StatelessReactiveMixin {
   const ReactiveBuilder({
     required this.builder,
@@ -40,7 +40,7 @@ class _ReactableStatefulElement extends StatefulElement
 
 /// A mixin to automatically rebuild the StatefulWidget's State
 mixin ReactiveStateMixin on Element {
-  final _BeatxSubscription _subscription = _BeatxSubscription();
+  final _RxSubscription _subscription = _RxSubscription();
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -50,12 +50,12 @@ mixin ReactiveStateMixin on Element {
 
   @override
   void rebuild() {
-    final previousObserver = BeatxRx._observer;
+    final previousObserver = Rx._observer;
 
     _subscription.unsubscribeAll();
-    BeatxRx._observer = _subscription;
+    Rx._observer = _subscription;
     super.rebuild();
-    BeatxRx._observer = previousObserver;
+    Rx._observer = previousObserver;
   }
 
   @override

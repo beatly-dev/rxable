@@ -1,3 +1,7 @@
+## 0.5.1
+
+ - Bump "beat_rx" to `0.5.1`.
+
 ## 0.5.0+2
 
  - **FIX**: match the return type.

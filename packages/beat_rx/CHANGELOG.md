@@ -1,3 +1,7 @@
+## 0.5.0+1
+
+ - **REFACTOR**: rename FamilyRx to RxFamily.
+
 ## 0.5.0
 
 > Note: This release has breaking changes.

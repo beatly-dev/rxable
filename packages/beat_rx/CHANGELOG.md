@@ -1,3 +1,8 @@
+## 0.6.1
+
+ - **FIX**: bugs on composable rx.
+ - **FEAT**: unbind().
+
 ## 0.6.0
 
 > Note: This release has breaking changes.

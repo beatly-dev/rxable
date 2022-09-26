@@ -9,16 +9,16 @@ A simple but reactful state management library for Flutter.
 
 ## Rx
 
-`Rx` is an observable unit. You can `.rx` on any object to create an observable.
+`Rx` is an observable unit. You can `.rx()` on any object to create an observable.
 
 ### Primitive types
 
 ```dart
-final counter = 0.rx;
-final text = 'Hello, World!'.rx;
-final pi = 3.14.rx;
-final list = [1, 2, 3].rx;
-final map = {'a': 1, 'b': 2, 'c': 3}.rx;
+final counter = 0.rx();
+final text = 'Hello, World!'.rx();
+final pi = 3.14.rx();
+final list = [1, 2, 3].rx();
+final map = {'a': 1, 'b': 2, 'c': 3}.rx();
 ```
 
 ### Custom types
@@ -30,7 +30,7 @@ class User {
 
 	User(this.name, this.age);
 }
-final user = User('Oh Gihwan', 20).rx;
+final user = User('Oh Gihwan', 20).rx();
 ```
 
 or you can make every field of your class observable.
@@ -43,7 +43,7 @@ class User {
   User(this.name, this.age);
 }
 
-final user = User('Oh Gihwan'.rx, 20.rx).rx;
+final user = User('Oh Gihwan'.rx(), 20.rx()).rx();
 ```
 
 ### Composable values
@@ -52,15 +52,16 @@ If you want to create observables that depend on other observables,
 you can use `ComputedRx` class.
 
 ```dart
-final hours = 0.rx;
+final hours = 0.rx();
 /// minutes will change when hours changes.
 final minutes = ComputedRx(() => hours.value * 60);
 /// seconds will change when hours and minutes changes.
-final seconds = ComputedRx(() => minutes.value * 60);
+final seconds = (() => minutes.value * 60).rx(); // same as ComputeRx(() => minutes.value * 60)
 
-final currentHour = 0.rx;
-final currentMinute = 0.rx;
-final currentSecond = 0.rx;
+
+final currentHour = 0.rx();
+final currentMinute = 0.rx();
+final currentSecond = 0.rx();
 /// Rx will call `toString()` on a `value`.
 /// If you override `toString()` method, you don't need to call `value.toString()`.
 /// `currentTime` will change when currentHour, currentMinute, currentSecond changes.
@@ -87,7 +88,7 @@ final _counterFromTen  = _counterTemplate(10);
 You can change the state of the observable by calling `.value = ...` on it.
 
 ```dart
-final counter = 0.rx;
+final counter = 0.rx();
 
 // ...
 // this will rebuild the RxObserver widgets that depend on the counter
@@ -106,7 +107,7 @@ class User {
   User(this.name);
   var String name;
 }
-final user = User('Oh Gihwan').rx;
+final user = User('Oh Gihwan').rx();
 
 // ...
 // this will not rebuild your RxObserver widgets
@@ -123,7 +124,7 @@ You don't need to explicitly define what you are depending on. Just wrap your wi
 
 ```dart
 class MyWidget extends StatelessWidget {
-  final counter = 0.rx;
+  final counter = 0.rx();
   @override
   Widget build(BuildContext context) {
     return ReactiveBuilder(
@@ -142,7 +143,7 @@ You can omit the `BuildContext` parameter if you don't need it.
 
 ```dart
 class MyWidget extends StatelessWidget {
-  final counter = 0.rx;
+  final counter = 0.rx();
   @override
   Widget build(BuildContext context) {
     return (() {
@@ -167,7 +168,7 @@ If you don't need to use lifecycle methods, you can mixin `StatelessReactiveMixi
 
 ```dart
 /// Somewhere in your code
-final counter = 0.rx;
+final counter = 0.rx();
 
 /// ...
 class MyObserverWidget extends StatelessWidget with StatelessReactiveMixin {
@@ -178,40 +179,16 @@ class MyObserverWidget extends StatelessWidget with StatelessReactiveMixin {
 }
 ```
 
-### ReactiveStateMixin
-
-If you need to use lifecycle methods, you can mixin `ReactiveStateMixin`.
-
-```dart
-/// Somewhere in your code
-final counter = 0.rx;
-
-/// ...
-class MyObserverWidget extends StatefulWidget {
-  @override
-  MyObserverWidgetState createState() => MyObserverWidgetState();
-}
-
-class MyObserverWidgetState extends State<MyObserverWidget> with ReactiveStateMixin {
-  @override
-  Widget build(BuildContext context) {
-    return Text('You clicked the button ${counter} times!');
-  }
-}
-```
-
 ### StatefulReactiveMixin
 
-Sometimes, some `StatefulWidget` have a main `build` method.
-In this case, you can mixin `StatefulReactiveMixin`.
+If you need to use lifecycle methods, you can mixin `StatefulReactiveMixin`.
 
 ```dart
 class MyStatefulSomeWidget extends StatefulWidget with StatefulReactiveMixin {
-  @override
-  Widget build(BuildContext context) {
-    return Text('You clicked the button ${counter} times!');
-  }
+  /// your code here
 }
+
+/// State class does not need to be modified
 ```
 
 # FutureRx
@@ -226,7 +203,7 @@ Future<int> delayedCounter() async {
   return 1;
 }
 
-final myDelayedRx = delayedCounter().rx;
+final myDelayedRx = delayedCounter().rx();
 ```
 
 ## Reactive to Future
@@ -281,7 +258,7 @@ Let's see the example.
 
 ```dart
 /// Somewhere in your code
-final counter = 0.rx;
+final counter = 0.rx();
 
 /// ...
 Future<int> delayedCounter() async {
@@ -292,7 +269,7 @@ Future<int> delayedCounter() async {
 }
 
 /// ** There is no method caller `()`, just make method itself a reactive **
-final reactiveDelayedCounter = delayedCounter.rx;
+final reactiveDelayedCounter = delayedCounter.rx();
 
 /// Now, same as `FutureRx`
 ReactiveBuilder(

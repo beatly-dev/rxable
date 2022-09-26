@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:collection';
+import 'dart:developer';
 
 import 'package:async/async.dart';
 import 'package:flutter/widgets.dart';
@@ -27,11 +28,6 @@ class _RxSubscription extends ChangeNotifier {
   void unsubscribeAll() {
     for (final obs in observables) {
       obs.removeListener(notifyListeners);
-      if (!obs.hasListeners) {
-        /// Drop and initilize Rx,
-        /// when there is no widget listening to it anymore.
-        obs.drop();
-      }
     }
     observables.clear();
   }
@@ -129,13 +125,20 @@ class Rx<T> extends ChangeNotifier {
     }
   }
 
+  bool _canDrop() {
+    return autoDispose &&
+        !hasListeners &&
+        _children.isEmpty &&
+        _elements.isEmpty;
+  }
+
   /// Dispose
   void drop() {
-    if (!autoDispose) return;
     onDispose?.call(_value as T);
     _value = null;
     _initialized = false;
     _children.clear();
+    _elements.clear();
   }
 
   /// When you make a change to the custom class, you can call this method
@@ -146,26 +149,70 @@ class Rx<T> extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    for (final elm in _elements) {
+      elm.markNeedsBuild();
+    }
+    super.notifyListeners();
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    super.removeListener(listener);
+    if (_canDrop()) {
+      drop();
+    }
+  }
+
+  void reset() {
+    value = compute();
+  }
+
+  final _elements = HashSet<Element>();
+
+  void _addFlutterElement(Element elm) {
+    _elements.add(elm);
+  }
+
+  void _removeFlutterElement(Element elm) {
+    _elements.remove(elm);
+    if (_canDrop()) {
+      drop();
+    }
+  }
+
+  @override
   String toString() {
     return value.toString();
   }
 }
 
+extension BindElement<T extends Rx> on T {
+  T bind(BuildContext context) {
+    if (context is! ReactiveStateMixin) {
+      log('''
+[WARNING] You are trying to bind a Rx to a non-Reactive widget.
+Auto-dispose will not work for this Rx.
+''');
+    } else {
+      final reactiveElement = context;
+      reactiveElement.addObservable(this);
+    }
+    _addFlutterElement(context as Element);
+    return this;
+  }
+}
+
 extension TransformToRx<T> on T {
   /// Get a Rx
-  Rx<T> get rx => Rx(() => this);
-
-  /// Get a Rx, notify even when the value is not changed
-  Rx<T> get rxAlways => Rx(() => this, listenOnUnchanged: true);
-
-  /// Get a auto disposed Rx, dispose when there is no widget listening to it
-  Rx<T> rxAutoDispose(
-    void Function(T lastValue)? onDispose, {
+  Rx<T> rx({
     bool listenOnUnchanged = false,
+    bool autoDispose = false,
+    void Function(T lastValue)? onDispose,
   }) =>
       Rx(
         () => this,
-        autoDispose: true,
+        autoDispose: autoDispose,
         onDispose: onDispose,
         listenOnUnchanged: listenOnUnchanged,
       );
@@ -173,19 +220,14 @@ extension TransformToRx<T> on T {
 
 extension TransformToComputedRx<T> on T Function() {
   /// Get a Rx
-  Rx<T> get rx => Rx(this);
-
-  /// Get a Rx, notify even when the value is not changed
-  Rx<T> get rxAlways => Rx(this, listenOnUnchanged: true);
-
-  /// Get a auto disposed Rx, dispose when there is no widget listening to it
-  Rx<T> rxAutoDispose(
-    void Function(T lastValue)? onDispose, {
+  Rx<T> rx({
     bool listenOnUnchanged = false,
+    bool autoDispose = false,
+    void Function(T lastValue)? onDispose,
   }) =>
       Rx(
         this,
-        autoDispose: true,
+        autoDispose: autoDispose,
         onDispose: onDispose,
         listenOnUnchanged: listenOnUnchanged,
       );

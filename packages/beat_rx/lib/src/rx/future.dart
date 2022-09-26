@@ -2,10 +2,16 @@ part of 'rx.dart';
 
 /// For [Future]s.
 class FutureRx<T> extends Rx<Future<T>> {
-  FutureRx(Future<T> future) : super(() => future) {
-    _completer = CancelableOperation<T>.fromFuture(future);
+  FutureRx(
+    Future<T> future, {
+    super.autoDispose,
+    super.listenOnUnchanged,
+    super.onDispose,
+  })  : _completer = CancelableOperation.fromFuture(future),
+        super(() => future) {
     _completer.then(
       (result) {
+        _isCompleted = true;
         _result = result;
         rebuild();
       },
@@ -17,7 +23,7 @@ class FutureRx<T> extends Rx<Future<T>> {
     );
   }
 
-  late final CancelableOperation<T> _completer;
+  final CancelableOperation<T> _completer;
 
   CancelableOperation<T> get completer {
     /// intentionally access `value` getter to register this [Rx]
@@ -26,6 +32,7 @@ class FutureRx<T> extends Rx<Future<T>> {
   }
 
   bool _isError = false;
+  bool _isCompleted = false;
 
   /// The future is completed with an error.
   bool get isError {
@@ -41,7 +48,7 @@ class FutureRx<T> extends Rx<Future<T>> {
   dynamic _errorResult;
 
   /// The future is completed.
-  bool get isCompleted => completer.isCompleted;
+  bool get isCompleted => _isCompleted;
 
   /// The result of the future.
   late T _result;
@@ -83,17 +90,17 @@ class FutureRx<T> extends Rx<Future<T>> {
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
-    if (isCompleted) {
-      return completed?.call(_result) ?? orElse!.call();
-    }
-    if (isLoading) {
-      return loading?.call() ?? orElse!.call();
-    }
     if (isError) {
       return error?.call(_errorResult) ?? orElse!.call();
     }
     if (isCanceled) {
       return canceled?.call() ?? orElse!.call();
+    }
+    if (isCompleted) {
+      return completed?.call(_result) ?? orElse!.call();
+    }
+    if (isLoading) {
+      return loading?.call() ?? orElse!.call();
     }
     return orElse!.call();
   }
@@ -116,14 +123,17 @@ You should provide at least `orElse` callback or all of the following callbacks:
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
+    if (isError) {
+      return error?.call(_errorResult);
+    }
+    if (isCanceled) {
+      return canceled?.call();
+    }
     if (isCompleted) {
-      completed?.call(_result);
-    } else if (isLoading) {
-      loading?.call();
-    } else if (isError) {
-      error?.call(_errorResult);
-    } else if (isCanceled) {
-      canceled?.call();
+      return completed?.call(_result);
+    }
+    if (isLoading) {
+      return loading?.call();
     }
     orElse?.call();
   }
@@ -131,5 +141,15 @@ You should provide at least `orElse` callback or all of the following callbacks:
 
 extension TransformToFutureRx<T> on Future<T> {
   /// Get a [FutureRx]
-  FutureRx<T> get rx => FutureRx(this);
+  FutureRx<T> rx({
+    bool listenOnUnchanged = false,
+    bool autoDispose = false,
+    void Function(Future<T> lastValue)? onDispose,
+  }) =>
+      FutureRx(
+        this,
+        listenOnUnchanged: listenOnUnchanged,
+        autoDispose: autoDispose,
+        onDispose: onDispose,
+      );
 }

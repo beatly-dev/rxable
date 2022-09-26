@@ -2,7 +2,12 @@ part of 'rx.dart';
 
 /// For [Future]s.
 class AsyncRx<T> extends Rx<Future<T>> {
-  AsyncRx(Future<T> Function() async) : super(() => async());
+  AsyncRx(
+    Future<T> Function() async, {
+    super.autoDispose,
+    super.listenOnUnchanged,
+    super.onDispose,
+  }) : super(() => async());
 
   CancelableOperation<T>? _completer;
 
@@ -106,17 +111,17 @@ class AsyncRx<T> extends Rx<Future<T>> {
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
-    if (isCompleted) {
-      return completed?.call(_result) ?? orElse!.call();
-    }
-    if (isLoading) {
-      return loading?.call() ?? orElse!.call();
-    }
     if (isError) {
       return error?.call(_errorResult) ?? orElse!.call();
     }
     if (isCanceled) {
       return canceled?.call() ?? orElse!.call();
+    }
+    if (isCompleted) {
+      return completed?.call(_result) ?? orElse!.call();
+    }
+    if (isLoading) {
+      return loading?.call() ?? orElse!.call();
     }
     return orElse!.call();
   }
@@ -139,14 +144,17 @@ You should provide at least `orElse` callback or all of the following callbacks:
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
+    if (isError) {
+      return error?.call(_errorResult);
+    }
+    if (isCanceled) {
+      return canceled?.call();
+    }
     if (isCompleted) {
-      completed?.call(_result);
-    } else if (isLoading) {
-      loading?.call();
-    } else if (isError) {
-      error?.call(_errorResult);
-    } else if (isCanceled) {
-      canceled?.call();
+      return completed?.call(_result);
+    }
+    if (isLoading) {
+      return loading?.call();
     }
     orElse?.call();
   }
@@ -154,5 +162,15 @@ You should provide at least `orElse` callback or all of the following callbacks:
 
 extension TransformToAsyncRx<T> on Future<T> Function() {
   /// Get a [AsyncRx]
-  AsyncRx<T> get rx => AsyncRx(this);
+  AsyncRx<T> rx({
+    bool listenOnUnchanged = false,
+    bool autoDispose = false,
+    void Function(Future<T> lastValue)? onDispose,
+  }) =>
+      AsyncRx(
+        this,
+        listenOnUnchanged: listenOnUnchanged,
+        autoDispose: autoDispose,
+        onDispose: onDispose,
+      );
 }

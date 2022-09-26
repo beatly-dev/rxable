@@ -188,11 +188,12 @@ class Rx<T> extends ChangeNotifier {
 }
 
 extension BindElement<T extends Rx> on T {
+  /// Manually bind the widget with Rx
   T bind(BuildContext context) {
     if (context is! ReactiveStateMixin) {
       log('''
 [WARNING] You are trying to bind a Rx to a non-Reactive widget.
-Auto-dispose will not work for this Rx.
+Until you explicitly call [unbind(context)], auto-dispose will not work for this Rx.
 ''');
     } else {
       final reactiveElement = context;
@@ -200,6 +201,15 @@ Auto-dispose will not work for this Rx.
     }
     _addFlutterElement(context as Element);
     return this;
+  }
+
+  /// Manually unbind the widget with Rx
+  void unbind(BuildContext context) {
+    if (context is ReactiveStateMixin) {
+      final reactiveElement = context;
+      reactiveElement.addObservable(this);
+    }
+    _removeFlutterElement(context as Element);
   }
 }
 

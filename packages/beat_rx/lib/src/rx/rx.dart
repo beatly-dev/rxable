@@ -12,7 +12,7 @@ part 'observer.dart';
 part 'string.dart';
 
 class _RxSubscription extends ChangeNotifier {
-  final HashSet<Rx> observables = HashSet();
+  HashSet<Rx> observables = HashSet();
 
   /// Subscribe to the observable
   void subscribe(Rx obs) {
@@ -29,6 +29,7 @@ class _RxSubscription extends ChangeNotifier {
       obs.removeListener(notifyListeners);
     }
     observables.clear();
+    observables = HashSet();
   }
 }
 
@@ -74,20 +75,23 @@ class Rx<T> extends ChangeNotifier {
 
   /// Get value and subscribe to the observable
   T get value {
-    final prevAccessor = _rxAccessingNow;
-    if (prevAccessor != null) {
-      _children.add(prevAccessor);
-      prevAccessor._parents.add(this);
+    if (_rxAccessingNow != null) {
+      _children.add(_rxAccessingNow!);
+      _rxAccessingNow!._parents.add(this);
     }
-    _rxAccessingNow = this;
-    final nextCandidate = compute();
-    _rxAccessingNow = prevAccessor;
 
-    /// Release all of the previous dependencies
     if (!_initialized || _dirty) {
-      _value = nextCandidate;
-      _initialized = true;
+      final prevAccessor = _rxAccessingNow;
+      // performance optimization
+      if (!_initialized) {
+        _rxAccessingNow = this;
+      } else {
+        _rxAccessingNow = null;
+      }
+      _value = compute();
+      _rxAccessingNow = prevAccessor;
       _dirty = false;
+      _initialized = true;
     }
 
     _observer?.subscribe(this);
@@ -105,7 +109,8 @@ class Rx<T> extends ChangeNotifier {
   }
 
   bool _canDrop() {
-    return _observer != null &&
+    return _initialized &&
+        _observer == null &&
         autoDispose &&
         !hasListeners &&
         _children.isEmpty &&
@@ -117,8 +122,12 @@ class Rx<T> extends ChangeNotifier {
     onDispose?.call(_value as T);
     _value = null;
     _initialized = false;
+    _dirty = false;
     for (final parent in _parents) {
       parent._children.remove(this);
+      if (parent._canDrop()) {
+        parent.drop();
+      }
     }
     _parents.clear();
     _children.clear();
@@ -136,14 +145,18 @@ class Rx<T> extends ChangeNotifier {
     final defunctElms = <Element>[];
     for (final elm in _elements) {
       try {
-        /// There is no way to check if the widget is unmounted.
-        /// This is a tricky way to resolve the problems in debug mode.
-        elm.widget;
+        /// If the user [Rx.bind()] with non-ReactiveStateMixin widget,
+        /// then there is no way to check if the widget is unmounted.
+        ///
+        /// In a debug mode, this will throw an exception using [assert]
         elm.markNeedsBuild();
 
-        /// In the profile and release mode,
-        /// when the widget is defunct, the [Element.dirty] field is not set.
-        if (!elm.dirty) {
+        /// But in the release mode, [assert] will not work.
+        /// This is a tricky way to resolve the problems in release mode.
+        /// When the widget is unmounted, [Element._widget] is null,
+        /// and [elm.widget] will throw an exception because its getter is not null-safe.
+        // ignore: unnecessary_null_comparison
+        if (elm.widget == null) {
           defunctElms.add(elm);
         }
       } catch (e) {
@@ -156,6 +169,7 @@ class Rx<T> extends ChangeNotifier {
     }
 
     for (final child in _children) {
+      if (child._dirty) continue;
       child._dirty = true;
       child.notifyListeners();
     }
@@ -178,10 +192,34 @@ class Rx<T> extends ChangeNotifier {
   final _elements = HashSet<Element>();
 
   void _addFlutterElement(Element elm) {
+    if (_elements.contains(elm)) {
+      return;
+    }
+    if (elm is ReactiveStateMixin) {
+      elm.addObservable(this);
+    }
+    _checkAndRemoveDefunctElm(elm);
     _elements.add(elm);
   }
 
+  void _checkAndRemoveDefunctElm(Element elm) {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      try {
+        // ignore: unnecessary_null_comparison
+        if (elm.widget == null) {
+          return _removeFlutterElement(elm);
+        }
+        _checkAndRemoveDefunctElm(elm);
+      } catch (e) {
+        _removeFlutterElement(elm);
+      }
+    });
+  }
+
   void _removeFlutterElement(Element elm) {
+    if (elm is ReactiveStateMixin) {
+      elm.removeObservable(this);
+    }
     _elements.remove(elm);
     if (_canDrop()) {
       drop();
@@ -197,20 +235,12 @@ class Rx<T> extends ChangeNotifier {
 extension BindElement<T extends Rx> on T {
   /// Manually bind the widget with Rx
   T bind(BuildContext context) {
-    if (context is ReactiveStateMixin) {
-      final reactiveElement = context;
-      reactiveElement.addObservable(this);
-    }
     _addFlutterElement(context as Element);
     return this;
   }
 
   /// Manually unbind the widget with Rx
   void unbind(BuildContext context) {
-    if (context is ReactiveStateMixin) {
-      final reactiveElement = context;
-      reactiveElement.removeObservable(this);
-    }
     _removeFlutterElement(context as Element);
   }
 }

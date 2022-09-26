@@ -56,12 +56,23 @@ final _counter = 0.rx(
     onDispose: (lastValue) {
       print("Dispose counter 1 - last was $lastValue");
     });
-final _counter2 = 1.rx();
-final _counterFamily =
-    ((mult) => mult * _counter.value).rxFamily(autoDispose: true);
-final _computed = Rx(() {
-  return _counter.value * 2 + _counter2.value;
-});
+final _counter2 = 1.rx(
+  autoDispose: true,
+  onDispose: (lastValue) => print("dispose counter2 - last $lastValue"),
+);
+final _counterFamily = ((mult) => mult * _counter.value + 10).rxFamily(
+  autoDispose: true,
+  onDispose: (lastValue) {
+    print("Dispose counter family - last was $lastValue");
+  },
+);
+final _computed = Rx(
+  () {
+    return _counter.value + _counter2.value;
+  },
+  autoDispose: true,
+  onDispose: (lastValue) => print("dispose computed $lastValue"),
+);
 
 Future<int> tester() async {
   final dep = _counter2.value;
@@ -69,11 +80,21 @@ Future<int> tester() async {
   return dep;
 }
 
-final _future = tester().rx();
-final _async = tester.rx();
+final _future = tester().rx(
+  autoDispose: true,
+  onDispose: (lastValue) {
+    print("Dispose future- last was $lastValue");
+  },
+);
+final _async = tester.rx(
+  autoDispose: true,
+  onDispose: (lastValue) {
+    print("Dispose async - last was $lastValue");
+  },
+);
+final _myDouble = _counterFamily(2);
 
 class _MyHomePageState extends State<MyHomePage> {
-  final _myDouble = _counterFamily(2);
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -82,7 +103,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    print("Rebuild entire");
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -136,12 +156,6 @@ class _MyHomePageState extends State<MyHomePage> {
                     return const Text('Reactive Future is loading...');
                   },
                 )).observe,
-            CustomObserver(counter: _counter),
-            ReactiveBuilder(builder: (_) {
-              return Text(
-                'counter1 ${_counter.value}',
-              );
-            })
           ],
         ),
       ),

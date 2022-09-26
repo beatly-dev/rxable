@@ -42,6 +42,7 @@ class _ReactableStatefulElement extends StatefulElement
 mixin ReactiveStateMixin on Element {
   final _RxSubscription _subscription = _RxSubscription();
   final _observables = <Rx>{};
+  bool _subscribed = false;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -52,9 +53,10 @@ mixin ReactiveStateMixin on Element {
   @override
   void rebuild() {
     final previousObserver = Rx._observer;
-
-    _subscription.unsubscribeAll();
-    Rx._observer = _subscription;
+    if (!_subscribed) {
+      Rx._observer = _subscription;
+      _subscribed = true;
+    }
     super.rebuild();
     Rx._observer = previousObserver;
   }
@@ -79,6 +81,7 @@ mixin ReactiveStateMixin on Element {
     dispose();
     _subscription.unsubscribeAll();
     _subscription.removeListener(markNeedsBuild);
+    _subscribed = false;
     super.unmount();
   }
 }

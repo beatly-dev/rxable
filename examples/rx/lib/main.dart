@@ -51,22 +51,16 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-final _counter = 0.rxAutoDispose((lastValue) {
-  print("Dispose counter 1 - last was $lastValue");
-});
-final _counter2 = 1.rx;
+final _counter = 0.rx(
+    autoDispose: true,
+    onDispose: (lastValue) {
+      print("Dispose counter 1 - last was $lastValue");
+    });
+final _counter2 = 1.rx();
 final _counterFamily = ((mult) => mult * _counter.value).rxFamily();
 final _computed = (() {
   return _counter.value * 2 + _counter2.value;
-}).rx;
-final _myData = MyClassData(0.rx, 'hello'.rx).rx;
-
-class MyClassData {
-  final Rx<int> value;
-  final Rx<String> name;
-
-  MyClassData(this.value, this.name);
-}
+}).rx();
 
 Future<int> tester() async {
   final dep = _counter2.value;
@@ -74,8 +68,8 @@ Future<int> tester() async {
   return dep;
 }
 
-final _future = tester().rx;
-final _async = tester.rx;
+final _future = tester().rx();
+final _async = tester.rx();
 
 class _MyHomePageState extends State<MyHomePage> {
   final _myDouble = _counterFamily(2);
@@ -124,9 +118,6 @@ class _MyHomePageState extends State<MyHomePage> {
             (() => Text(
                   'mixed counter1 and counter2 ${_computed.value}',
                 )).observe,
-            (() => Text(
-                  'my data is ${_myData.value.name.value}',
-                )).observe,
             (() => _future.map(
                   completed: (result) {
                     return Text('Future is $result');
@@ -162,12 +153,6 @@ class _MyHomePageState extends State<MyHomePage> {
           TextButton(
               onPressed: () => _myDouble.value++,
               child: const Text('increase my double')),
-          TextButton(
-              onPressed: () {
-                _myData.value.value.value++;
-                _myData.rebuild();
-              },
-              child: const Text('mydata')),
           TextButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(

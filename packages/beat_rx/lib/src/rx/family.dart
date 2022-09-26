@@ -23,7 +23,8 @@ class RxFamily<ValueType, InputType, RxType extends Rx<ValueType>> {
   final bool listenOnUnchanged;
 
   RxType call(InputType input) {
-    _bucket[input] ??= builder(input).rx(
+    _bucket[input] ??= Rx(
+      () => builder(input),
       onDispose: (lastValue) {
         _bucket.remove(input);
         onDispose?.call(lastValue);
@@ -59,7 +60,8 @@ class AsyncRxFamily<ValueType, InputType, RxType extends AsyncRx<ValueType>> {
   final bool listenOnUnchanged;
 
   RxType call(InputType input) {
-    _bucket[input] ??= builder(input).rx(
+    _bucket[input] ??= AsyncRx(
+      builder(input),
       onDispose: (lastValue) {
         _bucket.remove(input);
         onDispose?.call(lastValue);
@@ -95,7 +97,8 @@ class FutureRxFamily<ValueType, InputType> {
   final bool listenOnUnchanged;
 
   FutureRx<ValueType> call(InputType input) {
-    _bucket[input] ??= builder(input).rx(
+    _bucket[input] ??= FutureRx(
+      builder(input),
       onDispose: (lastValue) {
         _bucket.remove(input);
         onDispose?.call(lastValue);

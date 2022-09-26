@@ -49,12 +49,12 @@ final user = User('Oh Gihwan'.rx(), 20.rx()).rx();
 ### Composable values
 
 If you want to create observables that depend on other observables,
-you can use `ComputedRx` class.
+you can use `Rx` class itself.
 
 ```dart
 final hours = 0.rx();
 /// minutes will change when hours changes.
-final minutes = ComputedRx(() => hours.value * 60);
+final minutes = Rx(() => hours.value * 60);
 /// seconds will change when hours and minutes changes.
 final seconds = (() => minutes.value * 60).rx(); // same as ComputeRx(() => minutes.value * 60)
 
@@ -65,10 +65,8 @@ final currentSecond = 0.rx();
 /// Rx will call `toString()` on a `value`.
 /// If you override `toString()` method, you don't need to call `value.toString()`.
 /// `currentTime` will change when currentHour, currentMinute, currentSecond changes.
-final currentTime = ComputedRx(() => '${currentHour}:${currentMinute}:${currentSecond}');
+final currentTime = Rx(() => '${currentHour}:${currentMinute}:${currentSecond}');
 ```
-
-The other method and usage of `ComputedRx` are same as `Rx`.
 
 ### `.rxFamily` - Dynamically Created Rx Family
 

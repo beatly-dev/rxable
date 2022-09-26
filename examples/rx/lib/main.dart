@@ -57,10 +57,11 @@ final _counter = 0.rx(
       print("Dispose counter 1 - last was $lastValue");
     });
 final _counter2 = 1.rx();
-final _counterFamily = ((mult) => mult * _counter.value).rxFamily();
-final _computed = (() {
+final _counterFamily =
+    ((mult) => mult * _counter.value).rxFamily(autoDispose: true);
+final _computed = Rx(() {
   return _counter.value * 2 + _counter2.value;
-}).rx();
+});
 
 Future<int> tester() async {
   final dep = _counter2.value;
@@ -81,6 +82,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    print("Rebuild entire");
     return Scaffold(
       appBar: AppBar(),
       body: Center(
@@ -106,15 +108,15 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'You have pushed the button this many times:',
             ),
-            (() => Text(
-                  'counter1 $_counter ',
-                )).observe,
+            Text('counter1 ${_counter.bind(context)} '),
             (() => Text(
                   'counter2 $_counter2 ',
                 )).observe,
-            (() => Text(
-                  'doubled counter1 ${_myDouble.value}',
-                )).observe,
+            (() {
+              return Text(
+                'doubled counter1 ${_myDouble.value}',
+              );
+            }).observe,
             (() => Text(
                   'mixed counter1 and counter2 ${_computed.value}',
                 )).observe,

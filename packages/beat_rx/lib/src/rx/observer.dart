@@ -63,6 +63,10 @@ mixin ReactiveStateMixin on Element {
     _observables.add(obs);
   }
 
+  void removeObservable(Rx obs) {
+    _observables.remove(obs);
+  }
+
   void dispose() {
     for (final obs in _observables) {
       obs._removeFlutterElement(this);

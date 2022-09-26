@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:collection';
-import 'dart:developer';
 
 import 'package:async/async.dart';
 import 'package:flutter/widgets.dart';
@@ -45,18 +44,8 @@ class Rx<T> extends ChangeNotifier {
   /// Current observer ([ReactiveBuilder]) scope
   static _RxSubscription? _observer;
 
-  /// The current notifier ([Rx])
-  static Rx? _notifier;
-
-  /// The direct parent of the current notifier ([Rx])
-  static Rx? _dependant;
-
-  /// [Rx]s that current [Rx] depends on
-  final _dependancies = HashSet<Rx>();
-
-  /// The latest value of the dependant [Rx]
-  /// to check if the value is changed
-  final _dependantValues = <Rx, dynamic>{};
+  /// The current [Rx] accessing this [Rx]
+  static Rx? _rxAccessingNow;
 
   /// Notify even when the value is not changed
   final bool listenOnUnchanged;
@@ -71,43 +60,34 @@ class Rx<T> extends ChangeNotifier {
   final void Function(T lastValue)? onDispose;
 
   /// Observables dependending on this Rx
-  late final HashSet<Rx> _children = HashSet();
+  final HashSet<Rx> _children = HashSet();
+
+  /// Observables this Rx is depending on
+  final HashSet<Rx> _parents = HashSet();
 
   bool _initialized = false;
+
+  bool _dirty = false;
 
   /// Internal value
   late T? _value;
 
-  /// If this [Rx] depends on the current [_notifier]
-  /// and the value was changed.
-  bool _needUpdate() {
-    return (_dependancies.contains(_notifier) &&
-            _dependantValues[_notifier] != _notifier?._value) ||
-        _dependancies.fold(
-          false,
-          (isDependent, rx) => isDependent || rx._needUpdate(),
-        );
-  }
-
   /// Get value and subscribe to the observable
   T get value {
-    final needUpdate = _needUpdate();
-
-    /// Clear the previous dependencies
-    _dependancies.clear();
-    final prevDep = _dependant;
-    _dependant = this;
+    final prevAccessor = _rxAccessingNow;
+    if (prevAccessor != null) {
+      _children.add(prevAccessor);
+      prevAccessor._parents.add(this);
+    }
+    _rxAccessingNow = this;
     final nextCandidate = compute();
-    _dependant = prevDep;
-    _dependant?._dependancies.add(this);
+    _rxAccessingNow = prevAccessor;
 
     /// Release all of the previous dependencies
-    if (!_initialized || needUpdate) {
+    if (!_initialized || _dirty) {
       _value = nextCandidate;
       _initialized = true;
-      if (_notifier != null) {
-        _dependantValues[_notifier!] = _notifier?._value;
-      }
+      _dirty = false;
     }
 
     _observer?.subscribe(this);
@@ -117,7 +97,6 @@ class Rx<T> extends ChangeNotifier {
   /// Set value and notify listeners
   set value(T newVal) {
     /// Mark next rebuild as a self change
-    _notifier = this;
     final previous = _value;
     _value = newVal;
     if (previous != _value || listenOnUnchanged) {
@@ -126,7 +105,8 @@ class Rx<T> extends ChangeNotifier {
   }
 
   bool _canDrop() {
-    return autoDispose &&
+    return _observer != null &&
+        autoDispose &&
         !hasListeners &&
         _children.isEmpty &&
         _elements.isEmpty;
@@ -137,6 +117,10 @@ class Rx<T> extends ChangeNotifier {
     onDispose?.call(_value as T);
     _value = null;
     _initialized = false;
+    for (final parent in _parents) {
+      parent._children.remove(this);
+    }
+    _parents.clear();
     _children.clear();
     _elements.clear();
   }
@@ -144,14 +128,36 @@ class Rx<T> extends ChangeNotifier {
   /// When you make a change to the custom class, you can call this method
   /// to rebuild the widgets.
   void rebuild() {
-    _notifier = this;
     notifyListeners();
   }
 
   @override
   void notifyListeners() {
+    final defunctElms = <Element>[];
     for (final elm in _elements) {
-      elm.markNeedsBuild();
+      try {
+        /// There is no way to check if the widget is unmounted.
+        /// This is a tricky way to resolve the problems in debug mode.
+        elm.widget;
+        elm.markNeedsBuild();
+
+        /// In the profile and release mode,
+        /// when the widget is defunct, the [Element.dirty] field is not set.
+        if (!elm.dirty) {
+          defunctElms.add(elm);
+        }
+      } catch (e) {
+        defunctElms.add(elm);
+      }
+    }
+
+    for (final defunct in defunctElms) {
+      _removeFlutterElement(defunct);
+    }
+
+    for (final child in _children) {
+      child._dirty = true;
+      child.notifyListeners();
     }
     super.notifyListeners();
   }
@@ -165,7 +171,8 @@ class Rx<T> extends ChangeNotifier {
   }
 
   void reset() {
-    value = compute();
+    _value = compute();
+    rebuild();
   }
 
   final _elements = HashSet<Element>();
@@ -190,12 +197,7 @@ class Rx<T> extends ChangeNotifier {
 extension BindElement<T extends Rx> on T {
   /// Manually bind the widget with Rx
   T bind(BuildContext context) {
-    if (context is! ReactiveStateMixin) {
-      log('''
-[WARNING] You are trying to bind a Rx to a non-Reactive widget.
-Until you explicitly call [unbind(context)], auto-dispose will not work for this Rx.
-''');
-    } else {
+    if (context is ReactiveStateMixin) {
       final reactiveElement = context;
       reactiveElement.addObservable(this);
     }
@@ -207,7 +209,7 @@ Until you explicitly call [unbind(context)], auto-dispose will not work for this
   void unbind(BuildContext context) {
     if (context is ReactiveStateMixin) {
       final reactiveElement = context;
-      reactiveElement.addObservable(this);
+      reactiveElement.removeObservable(this);
     }
     _removeFlutterElement(context as Element);
   }

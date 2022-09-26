@@ -1,3 +1,7 @@
+## 0.6.1+1
+
+ - **PERF**: improve performance, auto-dispose bind().
+
 ## 0.6.1
 
  - **FIX**: bugs on composable rx.

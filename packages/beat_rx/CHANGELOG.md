@@ -1,3 +1,9 @@
+## 0.6.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **FEAT**: reset(), .rx to .rx(), more rxFamily. bind().
+
 ## 0.5.1
 
  - Bump "beat_rx" to `0.5.1`.

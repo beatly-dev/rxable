@@ -60,7 +60,7 @@ final _counter2 = 1.rx(
   autoDispose: true,
   onDispose: (lastValue) => print("dispose counter2 - last $lastValue"),
 );
-final _counterFamily = ((mult) => mult * _counter.value + 10).rxFamily(
+final _counterFamily = ((mult) => mult * _counter.value).rxFamily(
   autoDispose: true,
   onDispose: (lastValue) {
     print("Dispose counter family - last was $lastValue");

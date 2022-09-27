@@ -40,13 +40,11 @@ class _ReactableStatefulElement extends StatefulElement
 
 /// A mixin to automatically rebuild the StatefulWidget's State
 mixin ReactiveStateMixin on Element {
-  final _RxSubscription _subscription = _RxSubscription();
   final _observables = <Rx>{};
   bool _subscribed = false;
 
   @override
   void mount(Element? parent, Object? newSlot) {
-    _subscription.addListener(markNeedsBuild);
     super.mount(parent, newSlot);
   }
 
@@ -54,7 +52,7 @@ mixin ReactiveStateMixin on Element {
   void rebuild() {
     final previousObserver = Rx._observer;
     if (!_subscribed) {
-      Rx._observer = _subscription;
+      Rx._observer = this;
       _subscribed = true;
     }
     super.rebuild();
@@ -65,22 +63,15 @@ mixin ReactiveStateMixin on Element {
     _observables.add(obs);
   }
 
-  void removeObservable(Rx obs) {
-    _observables.remove(obs);
-  }
-
-  void dispose() {
+  @override
+  void unmount() {
+    final previousObserver = Rx._unmounter;
+    Rx._unmounter = this;
     for (final obs in _observables) {
       obs._removeFlutterElement(this);
     }
+    Rx._unmounter = previousObserver;
     _observables.clear();
-  }
-
-  @override
-  void unmount() {
-    dispose();
-    _subscription.unsubscribeAll();
-    _subscription.removeListener(markNeedsBuild);
     _subscribed = false;
     super.unmount();
   }

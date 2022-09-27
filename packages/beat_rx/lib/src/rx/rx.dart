@@ -7,31 +7,10 @@ import 'package:flutter/widgets.dart';
 part 'async.dart';
 part 'family.dart';
 part 'future.dart';
+// part 'inject.dart';
 part 'number.dart';
 part 'observer.dart';
 part 'string.dart';
-
-class _RxSubscription extends ChangeNotifier {
-  HashSet<Rx> observables = HashSet();
-
-  /// Subscribe to the observable
-  void subscribe(Rx obs) {
-    if (observables.contains(obs)) {
-      return;
-    }
-    observables.add(obs);
-    obs.addListener(notifyListeners);
-  }
-
-  /// Unsubscribe all observables
-  void unsubscribeAll() {
-    for (final obs in observables) {
-      obs.removeListener(notifyListeners);
-    }
-    observables.clear();
-    observables = HashSet();
-  }
-}
 
 /// Reactive data class
 class Rx<T> extends ChangeNotifier {
@@ -43,7 +22,8 @@ class Rx<T> extends ChangeNotifier {
   });
 
   /// Current observer ([ReactiveBuilder]) scope
-  static _RxSubscription? _observer;
+  static ReactiveStateMixin? _observer;
+  static ReactiveStateMixin? _unmounter;
 
   /// The current [Rx] accessing this [Rx]
   static Rx? _rxAccessingNow;
@@ -94,7 +74,9 @@ class Rx<T> extends ChangeNotifier {
       _initialized = true;
     }
 
-    _observer?.subscribe(this);
+    if (_observer != null) {
+      bind(_observer!);
+    }
     return _value as T;
   }
 
@@ -197,8 +179,9 @@ class Rx<T> extends ChangeNotifier {
     }
     if (elm is ReactiveStateMixin) {
       elm.addObservable(this);
+    } else {
+      _checkAndRemoveDefunctElm(elm);
     }
-    _checkAndRemoveDefunctElm(elm);
     _elements.add(elm);
   }
 
@@ -217,8 +200,8 @@ class Rx<T> extends ChangeNotifier {
   }
 
   void _removeFlutterElement(Element elm) {
-    if (elm is ReactiveStateMixin) {
-      elm.removeObservable(this);
+    if (_unmounter == null && elm is ReactiveStateMixin) {
+      elm._observables.remove(this);
     }
     _elements.remove(elm);
     if (_canDrop()) {

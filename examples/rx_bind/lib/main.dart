@@ -63,14 +63,12 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_fromOne',
               style: Theme.of(context).textTheme.headline4,
             ),
-            Builder(
-                key: const ValueKey("FROMTWO"),
-                builder: (context) {
-                  return Text(
-                    '${_fromTwo.bind(context)}',
-                    style: Theme.of(context).textTheme.headline4,
-                  );
-                }),
+            ReactiveBuilder(builder: (context) {
+              return Text(
+                '${_fromTwo.bind(context)}',
+                style: Theme.of(context).textTheme.headline4,
+              );
+            }),
             TextButton(
               onPressed: () {
                 _fromZero.value++;
@@ -92,7 +90,9 @@ class _MyHomePageState extends State<MyHomePage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pushReplacement(MaterialPageRoute(
-                  builder: (_) => const MyWidget(),
+                  builder: (_) {
+                    return const MyWidget();
+                  },
                 ));
               },
               child: const Text("Dispose counter"),
@@ -112,7 +112,7 @@ class MyWidget extends StatelessWidget {
     return Scaffold(
       body: Center(
         child: TextButton(
-          child: const Text("go back"),
+          child: Text("go back one ${counter(0)}"),
           onPressed: () {
             Navigator.of(context).pushReplacement(MaterialPageRoute(
               builder: (_) => const MyHomePage(title: "Flutter Demo Home Page"),

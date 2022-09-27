@@ -1,3 +1,8 @@
+## 0.6.2
+
+ - **FIX**: add inject.dart.
+ - **FEAT**: override rx by injection.
+
 ## 0.6.1+3
 
  - **REFACTOR**: unify the ReactiveMixin and bind() logic.

@@ -1,0 +1,4 @@
+# melos_managed_dependency_overrides: beat_rx
+dependency_overrides:
+  beat_rx:
+    path: ../../packages/beat_rx

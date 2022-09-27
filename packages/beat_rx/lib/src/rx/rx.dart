@@ -232,6 +232,15 @@ class Rx<T> extends ChangeNotifier {
   }
 }
 
+extension BindRxes on BuildContext {
+  /// Bind multiple Rxes
+  void bind(List<Rx> rxes) {
+    for (final rx in rxes) {
+      rx.bind(this);
+    }
+  }
+}
+
 extension BindElement<T extends Rx> on T {
   /// Manually bind the widget with Rx
   T bind(BuildContext context) {

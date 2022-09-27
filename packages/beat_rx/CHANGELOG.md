@@ -1,3 +1,7 @@
+## 0.6.1+2
+
+ - **FIX**: wrong type inference.
+
 ## 0.6.1+1
 
  - **PERF**: improve performance, auto-dispose bind().

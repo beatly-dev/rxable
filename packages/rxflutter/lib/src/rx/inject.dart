@@ -44,3 +44,49 @@ extension InjectRx<T> on Rx<T> {
     return injected;
   }
 }
+
+extension InjectFutureRx<T, R extends FutureRx<T>> on R {
+  /// Inject Rx to the widget
+  R inject(
+    BuildContext context,
+  ) {
+    final elm = context as Element;
+    _injected[elm] = this;
+    return this;
+  }
+
+  /// Remove Rx from the widget
+  void uninject(BuildContext context) {
+    final elm = context as Element;
+    _injected.remove(elm);
+  }
+
+  /// Get injected Rx from the widget
+  R? getInjected(BuildContext context) {
+    final elm = context as Element;
+    return _injected[elm] as R?;
+  }
+}
+
+extension InjectAsyncRx<T, R extends AsyncRx<T>> on R {
+  /// Inject Rx to the widget
+  R inject(
+    BuildContext context,
+  ) {
+    final elm = context as Element;
+    _injected[elm] = this;
+    return this;
+  }
+
+  /// Remove Rx from the widget
+  void uninject(BuildContext context) {
+    final elm = context as Element;
+    _injected.remove(elm);
+  }
+
+  /// Get injected Rx from the widget
+  R? getInjected(BuildContext context) {
+    final elm = context as Element;
+    return _injected[elm] as R?;
+  }
+}

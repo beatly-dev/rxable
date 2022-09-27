@@ -29,13 +29,6 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.9.0"
-  beat_rx:
-    dependency: "direct main"
-    description:
-      path: "../../packages/beat_rx"
-      relative: true
-    source: path
-    version: "0.6.0"
   boolean_selector:
     dependency: transitive
     description:
@@ -347,6 +340,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.2.1"
+  rxflutter:
+    dependency: "direct main"
+    description:
+      path: "../../packages/rxflutter"
+      relative: true
+    source: path
+    version: "0.6.2"
   shelf:
     dependency: transitive
     description:

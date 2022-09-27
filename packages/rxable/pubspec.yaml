@@ -1,4 +1,4 @@
-name: rxflutter
+name: rxable
 description: A reactive state management library for Flutter based on an opnionated reactive programming model.
 version: 0.7.0
 homepage: https://github.com/beatly-dev/beatx

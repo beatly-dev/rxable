@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:rx/dummy.dart';
-import 'package:rxflutter/rxflutter.dart';
+import 'package:rxable/rxable.dart';
 
 void main() {
   runApp(const MyApp());

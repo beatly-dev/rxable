@@ -1,4 +1,4 @@
-# melos_managed_dependency_overrides: rxflutter
+# melos_managed_dependency_overrides: rxable
 dependency_overrides:
-  rxflutter:
-    path: ../../packages/rxflutter
+  rxable:
+    path: ../../packages/rxable

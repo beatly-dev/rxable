@@ -46,6 +46,8 @@ class Rx<T> extends ChangeNotifier {
   /// Observables this Rx is depending on
   final HashSet<Rx> _parents = HashSet();
 
+  final _injected = <Element, Rx>{};
+
   bool _initialized = false;
 
   bool _dirty = false;
@@ -55,6 +57,10 @@ class Rx<T> extends ChangeNotifier {
 
   /// Get value and subscribe to the observable
   T get value {
+    if (_observer != null) {
+      bind(_observer!);
+    }
+
     if (_rxAccessingNow != null) {
       _children.add(_rxAccessingNow!);
       _rxAccessingNow!._parents.add(this);
@@ -74,9 +80,6 @@ class Rx<T> extends ChangeNotifier {
       _initialized = true;
     }
 
-    if (_observer != null) {
-      bind(_observer!);
-    }
     return _value as T;
   }
 
@@ -173,16 +176,36 @@ class Rx<T> extends ChangeNotifier {
 
   final _elements = HashSet<Element>();
 
-  void _addFlutterElement(Element elm) {
+  Rx<T>? _addFlutterElement(Element elm) {
     if (_elements.contains(elm)) {
-      return;
+      return this;
     }
+
+    final injected = getInjected(elm);
+    if (injected != null) {
+      /// if there is injected Rx, use it.
+      _injected[elm] = injected;
+      return injected.bind(elm);
+    }
+
     if (elm is ReactiveStateMixin) {
       elm.addObservable(this);
     } else {
       _checkAndRemoveDefunctElm(elm);
     }
     _elements.add(elm);
+    return injected ?? this;
+  }
+
+  void _removeFlutterElement(Element elm) {
+    if (_unmounter == null && elm is ReactiveStateMixin) {
+      elm._observables.remove(this);
+    }
+    _injected.remove(elm);
+    _elements.remove(elm);
+    if (_canDrop()) {
+      drop();
+    }
   }
 
   void _checkAndRemoveDefunctElm(Element elm) {
@@ -197,16 +220,6 @@ class Rx<T> extends ChangeNotifier {
         _removeFlutterElement(elm);
       }
     });
-  }
-
-  void _removeFlutterElement(Element elm) {
-    if (_unmounter == null && elm is ReactiveStateMixin) {
-      elm._observables.remove(this);
-    }
-    _elements.remove(elm);
-    if (_canDrop()) {
-      drop();
-    }
   }
 
   @override
@@ -227,8 +240,7 @@ extension BindRxes on BuildContext {
 extension BindElement<T extends Rx> on T {
   /// Manually bind the widget with Rx
   T bind(BuildContext context) {
-    _addFlutterElement(context as Element);
-    return this;
+    return (_addFlutterElement(context as Element) ?? this) as T;
   }
 
   /// Manually unbind the widget with Rx

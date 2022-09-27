@@ -1,3 +1,9 @@
+## 0.7.0
+
+> Note: This release has breaking changes.
+
+ - **BREAKING** **REFACTOR**: rename beatx_rx to rxflutter.
+
 ## 0.6.2
 
  - **FIX**: add inject.dart.

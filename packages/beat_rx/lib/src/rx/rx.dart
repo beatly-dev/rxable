@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 part 'async.dart';
 part 'family.dart';
 part 'future.dart';
-// part 'inject.dart';
+part 'inject.dart';
 part 'number.dart';
 part 'observer.dart';
 part 'string.dart';

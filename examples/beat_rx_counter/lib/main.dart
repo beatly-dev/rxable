@@ -1,5 +1,5 @@
-import 'package:beat_rx/beat_rx.dart';
 import 'package:flutter/material.dart';
+import 'package:rxflutter/rxflutter.dart';
 
 void main() {
   runApp(const MyApp());

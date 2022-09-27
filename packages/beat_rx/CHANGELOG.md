@@ -1,3 +1,7 @@
+## 0.6.1+3
+
+ - **REFACTOR**: unify the ReactiveMixin and bind() logic.
+
 ## 0.6.1+2
 
  - **FIX**: wrong type inference.

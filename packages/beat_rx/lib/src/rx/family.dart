@@ -8,7 +8,7 @@ class RxFamily<ValueType, InputType, RxType extends Rx<ValueType>> {
     this.listenOnUnchanged = false,
   });
 
-  final _bucket = <dynamic, Rx>{};
+  final _bucket = <InputType, Rx<ValueType>>{};
 
   /// A function that compute the wanted value
   final ValueType Function(InputType input) builder;

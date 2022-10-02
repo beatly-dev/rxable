@@ -18,6 +18,3 @@ jobs:
     steps:
       - name: Check coverage
         uses:  VeryGoodOpenSource/very_good_coverage@v1.2.1
-        with:
-          min_coverage: 95
-         

@@ -113,7 +113,7 @@ class ValueRx<T> extends ReactiveX<T> {
         /// With null-safety, this will throw an exception if the widget is unmounted.
         // ignore: unnecessary_null_comparison
         if (elm.widget == null) {
-          unbind(context); // LCOV_EXCL_LINE
+          unbind(context); // coverage:ignore-line
         }
         _automaticallyUnbind(context);
       } catch (e) {

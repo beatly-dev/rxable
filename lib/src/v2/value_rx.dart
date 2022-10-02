@@ -68,10 +68,7 @@ class ValueRx<T> extends ReactiveX<T> {
       return;
     }
     _value = newVal;
-    _markWidgetsNeedsBuildAll();
-    for (final child in _children) {
-      child.updateParent();
-    }
+    forceUpdate();
   }
 
   /// Update value when the parent is updated.
@@ -79,6 +76,14 @@ class ValueRx<T> extends ReactiveX<T> {
   void updateParent() {
     /// All the notification routines are done in the setter.
     value = builder();
+  }
+
+  @override
+  void forceUpdate() {
+    _markWidgetsNeedsBuildAll();
+    for (final child in _children) {
+      child.updateParent();
+    }
   }
 
   /// Mark all widgets as needing to be rebuilt.
@@ -133,7 +138,7 @@ class ValueRx<T> extends ReactiveX<T> {
       if (!_canDispose()) {
         return _automaticallyDisposeIfPossible();
       }
-      _dispose();
+      dispose();
     });
   }
 
@@ -163,7 +168,7 @@ class ValueRx<T> extends ReactiveX<T> {
     });
   }
 
-  void _dispose() {
+  void dispose() {
     final lastVal = _value;
     _value = null;
     onDispose?.call(lastVal as T);
@@ -176,4 +181,18 @@ class ValueRx<T> extends ReactiveX<T> {
   /// Forward [toString] to the value
   @override
   String toString() => value.toString();
+}
+
+extension TransformToRx<T> on T {
+  /// Transform a value to a Rx
+  ValueRx<T> toRx({
+    bool autoDispose = false,
+    void Function(T lastValue)? onDispose,
+  }) {
+    return ValueRx<T>(
+      () => this,
+      autoDispose: autoDispose,
+      onDispose: onDispose,
+    );
+  }
 }

@@ -12,6 +12,8 @@ abstract class ReactiveX<T> {
   @protected
   void updateParent();
 
+  void forceUpdate();
+
   ReactiveX<T> bind(BuildContext context);
   void unbind(BuildContext context);
 }

@@ -1,4 +1,0 @@
-# melos_managed_dependency_overrides: beatx_annotations
-dependency_overrides:
-  beatx_annotations:
-    path: ../../packages/beatx_annotations

@@ -1,1 +1,0 @@
-final pathParamRegExp = RegExp(r'\/(\$[^\/\$]+)');

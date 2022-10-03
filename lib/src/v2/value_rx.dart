@@ -9,7 +9,8 @@ class ValueRx<T> extends ReactiveX<T> {
     this.onDispose,
   });
 
-  static ReactiveX? _rxAccessingNow;
+  @protected
+  static ReactiveX? rxAccessingNow;
 
   /// Initial value builder
   final T Function() builder;
@@ -31,7 +32,7 @@ class ValueRx<T> extends ReactiveX<T> {
   bool get hasElements => _elements.isNotEmpty;
 
   /// A Compounded Rx which is depending on this Rx.
-  final List<ReactiveX> _children = [];
+  final Set<ReactiveX> _children = {};
 
   @visibleForTesting
   bool get hasChildren => _children.isNotEmpty;
@@ -39,26 +40,23 @@ class ValueRx<T> extends ReactiveX<T> {
   bool _registeredDisposer = false;
 
   /// Get the value of this rx.
-  @override
   T get value {
-    final prevAcc = _rxAccessingNow;
-
-    if (prevAcc != null) {
-      /// add child to this Rx for rebuilding
-      _children.add(prevAcc);
+    if (rxAccessingNow != null) {
+      _children.add(rxAccessingNow!);
     }
 
-    _rxAccessingNow = this;
-    if (!isActive || dirty) {
+    if (!isActive) {
+      final prevAcc = rxAccessingNow;
+      rxAccessingNow = this;
       _value = builder();
+      rxAccessingNow = prevAcc;
+      isActive = true;
+      if (autoDispose && !_registeredDisposer) {
+        _registeredDisposer = true;
+        _automaticallyDisposeIfPossible();
+      }
     }
-    _rxAccessingNow = prevAcc;
-    isActive = true;
-    dirty = false;
-    if (autoDispose && !_registeredDisposer) {
-      _registeredDisposer = true;
-      _automaticallyDisposeIfPossible();
-    }
+
     return _value as T;
   }
 
@@ -74,20 +72,22 @@ class ValueRx<T> extends ReactiveX<T> {
   /// Update value when the parent is updated.
   @override
   void updateParent() {
-    /// All the notification routines are done in the setter.
+    final prevAcc = rxAccessingNow;
+    rxAccessingNow = this;
     value = builder();
+    rxAccessingNow = prevAcc;
   }
 
   @override
   void forceUpdate() {
-    _markWidgetsNeedsBuildAll();
+    _markAllWidgetsNeedsBuild();
     for (final child in _children) {
       child.updateParent();
     }
   }
 
   /// Mark all widgets as needing to be rebuilt.
-  void _markWidgetsNeedsBuildAll() {
+  void _markAllWidgetsNeedsBuild() {
     for (var e in _elements) {
       e.markNeedsBuild();
     }
@@ -171,11 +171,9 @@ class ValueRx<T> extends ReactiveX<T> {
   void dispose() {
     final lastVal = _value;
     _value = null;
-    onDispose?.call(lastVal as T);
-
-    dirty = true;
     isActive = false;
     _registeredDisposer = false;
+    onDispose?.call(lastVal as T);
   }
 
   /// Forward [toString] to the value
@@ -183,6 +181,7 @@ class ValueRx<T> extends ReactiveX<T> {
   String toString() => value.toString();
 }
 
+// coverage:ignore-start
 extension TransformToRx<T> on T {
   /// Transform a value to a Rx
   ValueRx<T> toRx({
@@ -196,3 +195,4 @@ extension TransformToRx<T> on T {
     );
   }
 }
+// coverage:ignore-end

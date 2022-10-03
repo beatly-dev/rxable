@@ -76,17 +76,17 @@ class FutureRx<T> extends ValueRx<Future<T>> {
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
-    if (isError) {
-      return error?.call(_errorResult) ?? orElse!.call();
+    if (isError && error != null) {
+      return error.call(_errorResult);
     }
-    if (isCanceled) {
-      return canceled?.call() ?? orElse!.call();
+    if (isCanceled && canceled != null) {
+      return canceled.call();
     }
-    if (isCompleted) {
-      return completed?.call(_result) ?? orElse!.call();
+    if (isCompleted && completed != null) {
+      return completed.call(_result);
     }
-    if (isLoading) {
-      return loading?.call() ?? orElse!.call();
+    if (isLoading && loading != null) {
+      return loading.call();
     }
     return orElse!.call();
   }
@@ -109,24 +109,25 @@ You should provide at least `orElse` callback or all of the following callbacks:
 You should provide at least `orElse` callback or all of the following callbacks:
 - [completed], [loading], [error], [canceled]
 ''');
-    if (isError) {
-      return error?.call(_errorResult);
+    if (isError && error != null) {
+      return error.call(_errorResult);
     }
-    if (isCanceled) {
-      return canceled?.call();
+    if (isCanceled && canceled != null) {
+      return canceled.call();
     }
-    if (isCompleted) {
-      return completed?.call(_result);
+    if (isCompleted && completed != null) {
+      return completed.call(_result);
     }
-    if (isLoading) {
-      return loading?.call();
+    if (isLoading && loading != null) {
+      return loading.call();
     }
-    orElse?.call();
+    orElse!.call();
   }
 }
 
+// coverage:ignore-start
 extension TransformToFutureRx<T> on Future<T> {
-  FutureRx<T> toFutureRx({
+  FutureRx<T> toRx({
     bool autoDispose = false,
     void Function(Future<T> lastValue)? onDispose,
   }) =>
@@ -136,3 +137,4 @@ extension TransformToFutureRx<T> on Future<T> {
         onDispose: onDispose,
       );
 }
+// coverage:ignore-end

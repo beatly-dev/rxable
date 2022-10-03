@@ -93,13 +93,14 @@ Future main() async {
                 completed: (result) => Text('Completed $result'),
                 error: (error) => const Text('Error'),
                 canceled: () => const Text('Canceled'),
+                loading: () => const Text('Really loading'),
                 orElse: () => const Text('Loading'),
               );
             },
           ),
         ),
       );
-      expect(find.text('Loading'), findsOneWidget);
+      expect(find.text('Really loading'), findsOneWidget);
       await futureRx.cancel();
       await tester.pumpAndSettle();
       expect(find.text('Canceled'), findsOneWidget);
@@ -125,6 +126,66 @@ Future main() async {
       );
       await tester.pumpWidget(Container());
       expect(futureRx.isCanceled, isTrue);
+    });
+
+    testWidgets('can execute by the state', (tester) async {
+      final completer = Completer();
+      final futureRx = FutureRx(completer.future);
+      var state = '';
+      futureRx.when(
+        loading: () => state = 'loading',
+        completed: (result) => state = 'completed',
+        error: (error) => state = 'error',
+        canceled: () => state = 'canceled',
+        orElse: () => state = 'else',
+      );
+      expect(state, equals('loading'));
+      futureRx.when(
+        completed: (result) => state = 'completed',
+        error: (error) => state = 'error',
+        canceled: () => state = 'canceled',
+        orElse: () => state = 'else',
+      );
+      expect(state, equals('else'));
+      completer.complete(1);
+      await tester.pump();
+      futureRx.when(
+        completed: (result) => state = 'completed',
+        error: (error) => state = 'error',
+        canceled: () => state = 'canceled',
+        orElse: () => state = 'else',
+      );
+      expect(state, equals('completed'));
+    });
+    testWidgets('can execute by the canceled state', (tester) async {
+      final completer = Completer();
+      final futureRx = FutureRx(completer.future);
+      var state = '';
+      futureRx.cancel();
+      await tester.pump();
+      futureRx.when(
+        loading: () => state = 'loading',
+        completed: (result) => state = 'completed',
+        error: (error) => state = 'error',
+        canceled: () => state = 'canceled',
+        orElse: () => state = 'else',
+      );
+      expect(state, equals('canceled'));
+    });
+    testWidgets('can execute on the error state', (tester) async {
+      final completer = Completer();
+      final futureRx = FutureRx(completer.future);
+      var state = '';
+      completer.completeError(1);
+      await tester.pump();
+      futureRx.when(
+        loading: () => state = 'loading',
+        completed: (result) => state = 'completed',
+        error: (error) => state = 'error',
+        canceled: () => state = 'canceled',
+        orElse: () => state = 'else',
+      );
+      expect(state, equals('error'));
     });
   });
 }
